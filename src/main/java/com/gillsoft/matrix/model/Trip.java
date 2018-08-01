@@ -55,7 +55,7 @@ public class Trip {
 	@JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
 	private Date reservationCloseAt;
 	
-	private Map<String, String> tags;
+	private List<String> tags;
 
 	public int getTripId() {
 		return tripId;
@@ -321,11 +321,11 @@ public class Trip {
 		this.reservationCloseAt = reservationCloseAt;
 	}
 
-	public Map<String, String> getTags() {
+	public List<String> getTags() {
 		return tags;
 	}
 
-	public void setTags(Map<String, String> tags) {
+	public void setTags(List<String> tags) {
 		this.tags = tags;
 	}
 

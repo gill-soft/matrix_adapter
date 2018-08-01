@@ -15,6 +15,8 @@ import com.gillsoft.matrix.model.City;
 import com.gillsoft.matrix.model.Country;
 import com.gillsoft.matrix.model.Locale;
 import com.gillsoft.matrix.model.Response;
+import com.gillsoft.matrix.model.ReturnRule;
+import com.gillsoft.matrix.model.RouteInfo;
 import com.gillsoft.matrix.model.Trip;
 
 @RestController
@@ -49,7 +51,7 @@ public class MatrixController {
 		return client.getCities(login, password, locale, countryId);
 	}
 	
-	@PostMapping(path = RestClient.TRIPS)
+	@PostMapping(RestClient.TRIPS)
 	public ResponseEntity<Response<List<Trip>>> getTrips(
 			@RequestParam(required = false) String login,
 			@RequestParam(required = false) String password,
@@ -67,5 +69,22 @@ public class MatrixController {
 				isTest, withEmptySeats, currency, uniqueTrip);
 	}
 	
+	@PostMapping(RestClient.RULES)
+	public ResponseEntity<Response<List<ReturnRule>>> getReturnRules(
+			@RequestParam(required = false) String login,
+			@RequestParam(required = false) String password,
+			@RequestParam(required = false) String locale,
+			@RequestParam(name = "interval_id", required = false) String intervalId) {
+		return client.getReturnRules(login, password, locale, intervalId);
+	}
+	
+	@PostMapping(RestClient.ROUTE)
+	public ResponseEntity<Response<RouteInfo>> getRoute(
+			@RequestParam(required = false) String login,
+			@RequestParam(required = false) String password,
+			@RequestParam(required = false) String locale,
+			@RequestParam(name = "route_id", required = false) String routeId) {
+		return client.getRoute(login, password, locale, routeId);
+	}
 	
 }

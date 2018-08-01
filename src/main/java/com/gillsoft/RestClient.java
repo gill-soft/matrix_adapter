@@ -32,6 +32,8 @@ import com.gillsoft.matrix.model.City;
 import com.gillsoft.matrix.model.Country;
 import com.gillsoft.matrix.model.Locale;
 import com.gillsoft.matrix.model.Response;
+import com.gillsoft.matrix.model.ReturnRule;
+import com.gillsoft.matrix.model.RouteInfo;
 import com.gillsoft.matrix.model.Trip;
 
 @Component
@@ -44,6 +46,8 @@ public class RestClient {
 	public static final String COUNTRIES = "/get/countries";
 	public static final String CITIES = "/get/cities";
 	public static final String TRIPS = "/get/trips";
+	public static final String RULES = "/get/trip/return-rules";
+	public static final String ROUTE = "/get/route-info";
 	
 	@Autowired
     @Qualifier("RedisMemoryCache")
@@ -142,7 +146,31 @@ public class RestClient {
 		params.add("unique_trip", uniqueTrip);
 		return new RequestSender<List<Trip>>().getDataResponse(TRIPS, HttpMethod.POST, params,
 				new ParameterizedTypeReference<Response<List<Trip>>>() {}, PoolType.SEARCH, new CopyOnWriteArrayList<Trip>(),
-				(result, container) -> container.addAll(result.getBody().getData()));
+				(result, container) -> {
+					Connection connection = result.getBody().getConnection();
+					for (Trip trip : result.getBody().getData()) {
+						trip.setIntervalId(trip.getIntervalId() + String.format("%03d", connection.getId()));
+						trip.setRouteId(Integer.parseInt(trip.getRouteId() + String.format("%03d", connection.getId())));
+						//TODO other params
+					}
+					container.addAll(result.getBody().getData());
+				});
+	}
+	
+	public ResponseEntity<Response<List<ReturnRule>>> getReturnRules(String login, String password, String locale, String intervalId) {
+		MultiValueMap<String, String> params = createLoginParams(login, password, locale);
+		params.add("interval_id", trimConnectionId("interval_id", intervalId));
+		return new RequestSender<List<ReturnRule>>().getDataResponse(RULES, HttpMethod.POST, params,
+				new ParameterizedTypeReference<Response<List<ReturnRule>>>() {}, PoolType.SEARCH, new CopyOnWriteArrayList<ReturnRule>(),
+				(result, container) -> container.addAll(result.getBody().getData()), Config.getConnection(intervalId));
+	}
+	
+	public ResponseEntity<Response<RouteInfo>> getRoute(String login, String password, String locale, String routeId) {
+		MultiValueMap<String, String> params = createLoginParams(login, password, locale);
+		params.add("route_id", trimConnectionId("route_id", routeId));
+		return new RequestSender<RouteInfo>().getDataResponse(ROUTE, HttpMethod.POST, params,
+				new ParameterizedTypeReference<Response<RouteInfo>>() {}, PoolType.SEARCH, null, null,
+				Config.getConnection(routeId));
 	}
 	
 	private MultiValueMap<String, String> createLoginParams(String login, String password, String locale) {
@@ -151,6 +179,15 @@ public class RestClient {
 		params.add("password", password);
 		params.add("locale", locale);
 		return params;
+	}
+	
+	private String trimConnectionId(String name, String id) {
+		if (id == null
+				|| id.isEmpty()
+				|| id.length() < 3) {
+			throw new RestClientException("Invalid parameter " + name);
+		}
+		return id.substring(0, id.length() - 3);
 	}
 	
 }

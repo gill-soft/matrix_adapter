@@ -11,6 +11,8 @@ import com.gillsoft.util.RestTemplateUtil;
 
 public class Connection {
 	
+	private int id;
+	
 	private boolean available;
 
 	private String url;
@@ -19,6 +21,14 @@ public class Connection {
 	
 	// для запросов поиска с меньшим таймаутом
 	private RestTemplate searchTemplate;
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
 
 	public boolean isAvailable() {
 		return available;
@@ -53,6 +63,7 @@ public class Connection {
 	}
 
 	public void fillProperties(Properties properties, int number) {
+		id = number;
 		url = properties.getProperty("url." + number);
 		
 		template = createNewPoolingTemplate(url, Integer.valueOf(properties.getProperty("request.timeout")));

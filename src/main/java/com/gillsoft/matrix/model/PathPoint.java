@@ -27,6 +27,8 @@ public class PathPoint {
 
 	private int distance;
 	private String platform;
+	
+	private Geo geo;
 
 	public String getStationCode() {
 		return stationCode;
@@ -98,6 +100,14 @@ public class PathPoint {
 
 	public void setPlatform(String platform) {
 		this.platform = platform;
+	}
+
+	public Geo getGeo() {
+		return geo;
+	}
+
+	public void setGeo(Geo geo) {
+		this.geo = geo;
 	}
 
 }

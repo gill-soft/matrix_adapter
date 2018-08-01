@@ -36,6 +36,22 @@ public class Config {
 		return connections;
 	}
 	
+	public static Connection getConnection(int id) {
+		for (Connection connection : connections) {
+			if (connection.getId() == id) {
+				return connection;
+			}
+		}
+		return null;
+	}
+	
+	public static Connection getConnection(String id) {
+		
+		// берем последние 3 цифры с конца
+		id = id.substring(id.length() - 3, id.length());
+		return getConnection(Integer.parseInt(id));
+	}
+	
 	public static String getPassword() {
 		return properties.getProperty("password");
 	}

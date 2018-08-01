@@ -2,9 +2,10 @@ package com.gillsoft.matrix.model;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonFormat.Shape;
 
 public class Route {
 
@@ -12,7 +13,7 @@ public class Route {
 	private String regularity;
 	
 	@JsonProperty("regularity_days")
-	private Map<Integer, String> regularityDays;
+	private List<String> regularityDays;
 	
 	@JsonProperty("carrier_code")
 	private String carrierCode;
@@ -27,9 +28,11 @@ public class Route {
 	private boolean test;
 	
 	@JsonProperty("started_at")
+	@JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd")
 	private Date started;
 	
 	@JsonProperty("ended_at")
+	@JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd")
 	private Date ended;
 	
 	private String type;
@@ -61,11 +64,11 @@ public class Route {
 		this.regularity = regularity;
 	}
 
-	public Map<Integer, String> getRegularityDays() {
+	public List<String> getRegularityDays() {
 		return regularityDays;
 	}
 
-	public void setRegularityDays(Map<Integer, String> regularityDays) {
+	public void setRegularityDays(List<String> regularityDays) {
 		this.regularityDays = regularityDays;
 	}
 

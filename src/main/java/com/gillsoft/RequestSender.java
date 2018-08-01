@@ -2,6 +2,7 @@ package com.gillsoft;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -23,8 +24,20 @@ public class RequestSender<T> {
 	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
 			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<Response<T>> type, PoolType poolType,
 			T container, ContainerDataFiller<T> filler) {
+		return getDataResponse(method, httpMethod, requestParams, type, poolType, container, filler, Config.getConnections());
+	}
+	
+	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
+			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<Response<T>> type, PoolType poolType,
+			T container, ContainerDataFiller<T> filler, Connection connection) {
+		return getDataResponse(method, httpMethod, requestParams, type, poolType, container, filler, Collections.singletonList(connection));
+	}
+	
+	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
+			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<Response<T>> type, PoolType poolType,
+			T container, ContainerDataFiller<T> filler, List<Connection> connections) {
 		List<Callable<ResponseEntity<Response<T>>>> callables = new ArrayList<>();
-		for (Connection connection : Config.getConnections()) {
+		for (Connection connection : connections) {
 			if (connection.isAvailable()) {
 				callables.add(() -> {
 					URI uri = UriComponentsBuilder.fromUriString(connection.getUrl() + method)
@@ -32,8 +45,8 @@ public class RequestSender<T> {
 							.build().toUri();
 					try {
 						RequestEntity<Object> request = new RequestEntity<>(httpMethod, uri);
-						ResponseEntity<Response<T>> response = connection.getTemplate().exchange(request,
-								new ParameterizedTypeReference<Response<T>>() {});
+						ResponseEntity<Response<T>> response = connection.getTemplate().exchange(request, type);
+						response.getBody().setConnection(connection);
 						return response;
 					} catch (RestClientException e) {
 						return null;
@@ -43,17 +56,19 @@ public class RequestSender<T> {
 		}
 		List<ResponseEntity<Response<T>>> results = ThreadPoolStore.getResult(poolType, callables);
 		ResponseEntity<Response<T>> result = null;
-		Response<T> response = null;
-		for (ResponseEntity<Response<T>> responseEntity : results) {
-			if (responseEntity != null
-					&& (responseEntity.getStatusCode() == HttpStatus.ACCEPTED
-							|| responseEntity.getStatusCode() == HttpStatus.OK)) {
-				filler.fill(responseEntity, container);
-				if (result == null) {
-					response = new Response<>();
-					response.setStatus(true);
-					response.setData(container);
-					result = new ResponseEntity<Response<T>>(response, responseEntity.getStatusCode());
+		if (filler != null) {
+			Response<T> response = null;
+			for (ResponseEntity<Response<T>> responseEntity : results) {
+				if (responseEntity != null
+						&& (responseEntity.getStatusCode() == HttpStatus.ACCEPTED
+								|| responseEntity.getStatusCode() == HttpStatus.OK)) {
+					filler.fill(responseEntity, container);
+					if (result == null) {
+						response = new Response<>();
+						response.setStatus(true);
+						response.setData(container);
+						result = new ResponseEntity<Response<T>>(response, responseEntity.getStatusCode());
+					}
 				}
 			}
 		}
@@ -71,8 +86,20 @@ public class RequestSender<T> {
 	public ResponseEntity<T> getResponse(String method, HttpMethod httpMethod,
 			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<T> type, PoolType poolType,
 			T container, ContainerFiller<T> filler) {
+		return getResponse(method, httpMethod, requestParams, type, poolType, container, filler, Config.getConnections());
+	}
+	
+	public ResponseEntity<T> getResponse(String method, HttpMethod httpMethod,
+			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<T> type, PoolType poolType,
+			T container, ContainerFiller<T> filler, Connection connection) {
+		return getResponse(method, httpMethod, requestParams, type, poolType, container, filler, Collections.singletonList(connection));
+	}
+	
+	public ResponseEntity<T> getResponse(String method, HttpMethod httpMethod,
+			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<T> type, PoolType poolType,
+			T container, ContainerFiller<T> filler, List<Connection> connections) {
 		List<Callable<ResponseEntity<T>>> callables = new ArrayList<>();
-		for (Connection connection : Config.getConnections()) {
+		for (Connection connection : connections) {
 			if (connection.isAvailable()) {
 				callables.add(() -> {
 					URI uri = UriComponentsBuilder.fromUriString(connection.getUrl() + method)
@@ -80,8 +107,7 @@ public class RequestSender<T> {
 							.build().toUri();
 					try {
 						RequestEntity<Object> request = new RequestEntity<>(httpMethod, uri);
-						ResponseEntity<T> response = connection.getTemplate().exchange(request,
-								new ParameterizedTypeReference<T>() {});
+						ResponseEntity<T> response = connection.getTemplate().exchange(request, type);
 						return response;
 					} catch (RestClientException e) {
 						return null;
@@ -91,13 +117,15 @@ public class RequestSender<T> {
 		}
 		List<ResponseEntity<T>> results = ThreadPoolStore.getResult(poolType, callables);
 		ResponseEntity<T> result = null;
-		for (ResponseEntity<T> responseEntity : results) {
-			if (responseEntity != null
-					&& (responseEntity.getStatusCode() == HttpStatus.ACCEPTED
-							|| responseEntity.getStatusCode() == HttpStatus.OK)) {
-				filler.fill(responseEntity, container);
-				if (result == null) {
-					result = new ResponseEntity<T>(container, responseEntity.getStatusCode());
+		if (filler != null) {
+			for (ResponseEntity<T> responseEntity : results) {
+				if (responseEntity != null
+						&& (responseEntity.getStatusCode() == HttpStatus.ACCEPTED
+								|| responseEntity.getStatusCode() == HttpStatus.OK)) {
+					filler.fill(responseEntity, container);
+					if (result == null) {
+						result = new ResponseEntity<T>(container, responseEntity.getStatusCode());
+					}
 				}
 			}
 		}
