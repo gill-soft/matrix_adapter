@@ -2,6 +2,7 @@
 
 Its important to add to tomcat context allowCasualMultipartParsing property
 
+```xml
 <Context allowCasualMultipartParsing="true" path="/">
     <Resources cachingAllowed="true" cacheMaxSize="100000" />
 
@@ -16,3 +17,4 @@ Its important to add to tomcat context allowCasualMultipartParsing property
     <Manager pathname="" />
     -->
 </Context>
+```
