@@ -1,5 +1,7 @@
 package com.gillsoft.matrix.model;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class City extends Country {
@@ -42,6 +44,24 @@ public class City extends Country {
 
 	public void setLongitude(float longitude) {
 		this.longitude = longitude;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof City)) {
+			return false;
+		}
+		City city = (City) obj;
+		return super.equals(obj)
+				&& geoCountryId == city.getGeoCountryId()
+				&& geoRegionId == city.getGeoRegionId()
+				&& latitude == city.getLatitude()
+				&& longitude == city.getLongitude();
+	}
+	
+	@Override
+	public int hashCode() {
+		return super.hashCode() * 31 + Objects.hash(geoCountryId, geoRegionId, latitude, longitude);
 	}
 
 }

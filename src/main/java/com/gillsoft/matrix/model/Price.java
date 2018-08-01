@@ -7,8 +7,8 @@ public class Price {
 	@JsonProperty("one_way")
 	private int oneWay;
 	
-	@JsonProperty("roundTrip")
-	private int round_trip;
+	@JsonProperty("round_trip")
+	private int roundTrip;
 
 	public int getOneWay() {
 		return oneWay;
@@ -18,12 +18,12 @@ public class Price {
 		this.oneWay = oneWay;
 	}
 
-	public int getRound_trip() {
-		return round_trip;
+	public int getRoundTrip() {
+		return roundTrip;
 	}
 
-	public void setRound_trip(int round_trip) {
-		this.round_trip = round_trip;
+	public void setRoundTrip(int roundTrip) {
+		this.roundTrip = roundTrip;
 	}
 
 }

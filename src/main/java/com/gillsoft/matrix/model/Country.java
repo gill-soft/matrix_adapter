@@ -1,5 +1,7 @@
 package com.gillsoft.matrix.model;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Country {
@@ -50,6 +52,24 @@ public class Country {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof Country)) {
+			return false;
+		}
+		Country country = (Country) obj;
+		return id == country.getId()
+				&& Objects.equals(iso, country.getIso())
+				&& Objects.equals(locale, country.getLocale())
+				&& Objects.equals(nativeName, country.getNativeName())
+				&& Objects.equals(name, country.getName());
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, iso, locale, nativeName, name);
 	}
 
 }

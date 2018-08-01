@@ -12,8 +12,10 @@ public class Trip {
 	
 	private int tripId;
 	private int routeId;
+	private String routeCombinedId;
 	private String routeCode;
 	private String carrier;
+	private String carrierName;
 	private String intervalId;
 	
 	@JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd")
@@ -29,6 +31,7 @@ public class Trip {
 	private String arriveCity;
 	private int arriveCityId;
 	private String carrierCode;
+	private String busNumber;
 	private String departStation;
 	private int departStationId;
 	private String arriveStation;
@@ -51,6 +54,8 @@ public class Trip {
 	
 	@JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
 	private Date reservationCloseAt;
+	
+	private Map<String, String> tags;
 
 	public int getTripId() {
 		return tripId;
@@ -68,6 +73,14 @@ public class Trip {
 		this.routeId = routeId;
 	}
 
+	public String getRouteCombinedId() {
+		return routeCombinedId;
+	}
+
+	public void setRouteCombinedId(String routeCombinedId) {
+		this.routeCombinedId = routeCombinedId;
+	}
+
 	public String getRouteCode() {
 		return routeCode;
 	}
@@ -82,6 +95,14 @@ public class Trip {
 
 	public void setCarrier(String carrier) {
 		this.carrier = carrier;
+	}
+
+	public String getCarrierName() {
+		return carrierName;
+	}
+
+	public void setCarrierName(String carrierName) {
+		this.carrierName = carrierName;
 	}
 
 	public String getIntervalId() {
@@ -162,6 +183,14 @@ public class Trip {
 
 	public void setCarrierCode(String carrierCode) {
 		this.carrierCode = carrierCode;
+	}
+
+	public String getBusNumber() {
+		return busNumber;
+	}
+
+	public void setBusNumber(String busNumber) {
+		this.busNumber = busNumber;
 	}
 
 	public String getDepartStation() {
@@ -291,5 +320,13 @@ public class Trip {
 	public void setReservationCloseAt(Date reservationCloseAt) {
 		this.reservationCloseAt = reservationCloseAt;
 	}
-	
+
+	public Map<String, String> getTags() {
+		return tags;
+	}
+
+	public void setTags(Map<String, String> tags) {
+		this.tags = tags;
+	}
+
 }
