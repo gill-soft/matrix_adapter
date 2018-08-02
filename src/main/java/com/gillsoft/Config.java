@@ -8,6 +8,7 @@ import java.util.Properties;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
+import org.springframework.web.client.RestClientException;
 
 public class Config {
 
@@ -42,14 +43,18 @@ public class Config {
 				return connection;
 			}
 		}
-		return null;
+		throw new RestClientException("Invalid one of sended parameter");
 	}
 	
 	public static Connection getConnection(String id) {
 		
 		// берем последние 3 цифры с конца
 		id = id.substring(id.length() - 3, id.length());
-		return getConnection(Integer.parseInt(id));
+		try {
+			return getConnection(Integer.parseInt(id));
+		} catch (NumberFormatException e) {
+			throw new RestClientException("Invalid one of sended parameter");
+		}
 	}
 	
 	public static String getPassword() {

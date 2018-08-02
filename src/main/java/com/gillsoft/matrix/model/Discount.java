@@ -3,69 +3,46 @@ package com.gillsoft.matrix.model;
 import java.math.BigDecimal;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Discount {
+@JsonInclude(value = Include.NON_NULL)
+public class Discount extends Fee {
 
-	private int id;
-	private String kind;
-	private String type;
+	@JsonProperty("discount_kind")
+	private String discountKind;
+	
+	@JsonProperty("discount_type")
+	private String discountType;
+	
+	@JsonProperty("discount_value")
+	private BigDecimal discountValue;
 
-	@JsonProperty("limit_from")
-	private int limitFrom;
-
-	@JsonProperty("limit_to")
-	private int limitTo;
-
-	private BigDecimal value;
 	private Map<String, Parameters> i18n;
 
-	public int getId() {
-		return id;
+	public String getDiscountKind() {
+		return discountKind;
 	}
 
-	public void setId(int id) {
-		this.id = id;
+	public void setDiscountKind(String discountKind) {
+		this.discountKind = discountKind;
 	}
 
-	public String getKind() {
-		return kind;
+	public String getDiscountType() {
+		return discountType;
 	}
 
-	public void setKind(String kind) {
-		this.kind = kind;
+	public void setDiscountType(String discountType) {
+		this.discountType = discountType;
 	}
 
-	public String getType() {
-		return type;
+	public BigDecimal getDiscountValue() {
+		return discountValue;
 	}
 
-	public void setType(String type) {
-		this.type = type;
-	}
-
-	public int getLimitFrom() {
-		return limitFrom;
-	}
-
-	public void setLimitFrom(int limitFrom) {
-		this.limitFrom = limitFrom;
-	}
-
-	public int getLimitTo() {
-		return limitTo;
-	}
-
-	public void setLimitTo(int limitTo) {
-		this.limitTo = limitTo;
-	}
-
-	public BigDecimal getValue() {
-		return value;
-	}
-
-	public void setValue(BigDecimal value) {
-		this.value = value;
+	public void setDiscountValue(BigDecimal discountValue) {
+		this.discountValue = discountValue;
 	}
 
 	public Map<String, Parameters> getI18n() {
@@ -75,5 +52,5 @@ public class Discount {
 	public void setI18n(Map<String, Parameters> i18n) {
 		this.i18n = i18n;
 	}
-
+	
 }

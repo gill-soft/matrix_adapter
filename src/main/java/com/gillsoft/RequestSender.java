@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -21,6 +23,8 @@ import com.gillsoft.matrix.model.Response;
 
 public class RequestSender<T> {
 	
+	private static final Logger LOGGER = LogManager.getLogger(RequestSender.class);
+	
 	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
 			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<Response<T>> type, PoolType poolType,
 			T container, ContainerDataFiller<T> filler) {
@@ -31,6 +35,12 @@ public class RequestSender<T> {
 			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<Response<T>> type, PoolType poolType,
 			T container, ContainerDataFiller<T> filler, Connection connection) {
 		return getDataResponse(method, httpMethod, requestParams, type, poolType, container, filler, Collections.singletonList(connection));
+	}
+	
+	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
+			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<Response<T>> type, PoolType poolType,
+			Connection connection) {
+		return getDataResponse(method, httpMethod, requestParams, type, poolType, null, null, Collections.singletonList(connection));
 	}
 	
 	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
@@ -49,6 +59,7 @@ public class RequestSender<T> {
 						response.getBody().setConnection(connection);
 						return response;
 					} catch (RestClientException e) {
+						LOGGER.error(e.getMessage());
 						return null;
 					}
 				});
@@ -110,6 +121,7 @@ public class RequestSender<T> {
 						ResponseEntity<T> response = connection.getTemplate().exchange(request, type);
 						return response;
 					} catch (RestClientException e) {
+						LOGGER.error(e.getMessage());
 						return null;
 					}
 				});

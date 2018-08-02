@@ -17,12 +17,12 @@
 	</servlet-mapping>
 
 	<filter>
-		<filter-name>MultipartFilter</filter-name>
-		<filter-class>org.springframework.web.multipart.support.MultipartFilter</filter-class>
+		<filter-name>EncodingFilter</filter-name>
+		<filter-class>com.gillsoft.EncodingFilter</filter-class>
 	</filter>
 	
 	<filter-mapping>
-		<filter-name>MultipartFilter</filter-name>
+		<filter-name>EncodingFilter</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 	

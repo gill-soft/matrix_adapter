@@ -2,8 +2,11 @@ package com.gillsoft.matrix.model;
 
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+@JsonInclude(value = Include.NON_NULL)
 public class TicketReturn {
 
 	private String type;

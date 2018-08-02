@@ -3,8 +3,11 @@ package com.gillsoft.matrix.model;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonFormat.Shape;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+@JsonInclude(value = Include.NON_NULL)
 public class ReturnRule {
 	
 	private String title;

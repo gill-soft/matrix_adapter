@@ -2,14 +2,19 @@ package com.gillsoft.matrix.model;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonFormat.Shape;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+@JsonInclude(value = Include.NON_NULL)
 public class Order {
 	
+	private String link;
 	private String number;
 	private String status;
 	
@@ -37,7 +42,15 @@ public class Order {
 	private String hash;
 	private String currency;
 
-	private Map<String, Ticket> tickets;
+	private Map<String, List<Ticket>> tickets;
+
+	public String getLink() {
+		return link;
+	}
+
+	public void setLink(String link) {
+		this.link = link;
+	}
 
 	public String getNumber() {
 		return number;
@@ -135,11 +148,11 @@ public class Order {
 		this.currency = currency;
 	}
 
-	public Map<String, Ticket> getTickets() {
+	public Map<String, List<Ticket>> getTickets() {
 		return tickets;
 	}
 
-	public void setTickets(Map<String, Ticket> tickets) {
+	public void setTickets(Map<String, List<Ticket>> tickets) {
 		this.tickets = tickets;
 	}
 	

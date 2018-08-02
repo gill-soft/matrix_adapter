@@ -2,11 +2,15 @@ package com.gillsoft.matrix.model;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonFormat.Shape;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+@JsonInclude(value = Include.NON_NULL)
 public class Ticket {
 
 	private String number;
@@ -32,6 +36,10 @@ public class Ticket {
 	@JsonProperty("reserved_to")
 	@JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
 	private Date reservedTo;
+	
+	@JsonProperty("created_at")
+	@JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+	private Date createdAt;
 
 	@JsonProperty("geo_point_from")
 	private String geoPointFrom;
@@ -106,6 +114,9 @@ public class Ticket {
 	@JsonProperty("exchange_rate")
 	private BigDecimal exchangeRate;
 	
+	@JsonProperty("return_rules")
+	private List<ReturnRule> returnRules;
+	
 	@JsonProperty("route_code")
 	private String routeCode;
 	
@@ -129,6 +140,12 @@ public class Ticket {
 	
 	@JsonProperty("carrier_name")
 	private String carrierName;
+	
+	@JsonProperty("ticket_discount")
+	private List<Discount> ticketDiscount;
+	
+	@JsonProperty("ticket_fee")
+	private List<Fee> ticketFee;
 
 	public String getNumber() {
 		return number;
@@ -200,6 +217,14 @@ public class Ticket {
 
 	public void setReservedTo(Date reservedTo) {
 		this.reservedTo = reservedTo;
+	}
+
+	public Date getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
 	}
 
 	public String getGeoPointFrom() {
@@ -402,6 +427,14 @@ public class Ticket {
 		this.exchangeRate = exchangeRate;
 	}
 
+	public List<ReturnRule> getReturnRules() {
+		return returnRules;
+	}
+
+	public void setReturnRules(List<ReturnRule> returnRules) {
+		this.returnRules = returnRules;
+	}
+
 	public String getRouteCode() {
 		return routeCode;
 	}
@@ -464,6 +497,22 @@ public class Ticket {
 
 	public void setCarrierName(String carrierName) {
 		this.carrierName = carrierName;
+	}
+
+	public List<Discount> getTicketDiscount() {
+		return ticketDiscount;
+	}
+
+	public void setTicketDiscount(List<Discount> ticketDiscount) {
+		this.ticketDiscount = ticketDiscount;
+	}
+
+	public List<Fee> getTicketFee() {
+		return ticketFee;
+	}
+
+	public void setTicketFee(List<Fee> ticketFee) {
+		this.ticketFee = ticketFee;
 	}
 
 }
