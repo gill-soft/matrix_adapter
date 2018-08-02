@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -254,6 +255,30 @@ public class RestClient {
 		return orderOperation(AUTO_RETURN, login, password, locale, orderId, null, description);
 	}
 	
+	public ResponseEntity<Response<Order>> manualReturn(HttpServletRequest request) {
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		Enumeration<String> requestParams = request.getParameterNames();
+		String orderId = null;
+		while (requestParams.hasMoreElements()) {
+			String name = requestParams.nextElement();
+			if (Objects.equals("order_id", name)) {
+				orderId = request.getParameter(name);
+				params.add(name, trimConnectionId(name, orderId));
+			} else if (name.contains("amount")) {
+				params.add(name, trimConnectionId(name, request.getParameter(name), 4) + "]");
+			} else {
+				params.add(name, request.getParameter(name));
+			}
+		}
+		Connection connection = Config.getConnection(orderId);
+		ResponseEntity<Response<Order>> response = new RequestSender<Order>().getDataResponse(RETURN, HttpMethod.POST,
+				params, new ParameterizedTypeReference<Response<Order>>() {}, PoolType.ORDER, connection);
+		if (checkResponse(response)) {
+			updateOrder(response.getBody().getData(), connection);
+		}
+		return response;
+	}
+	
 	public ResponseEntity<Response<Order>> ticketAutoReturn(String login, String password, String locale, String ticketId, String description) {
 		return orderOperation(TICKET_AUTO_RETURN, login, password, locale, ticketId, null, description, null);
 	}
@@ -336,12 +361,16 @@ public class RestClient {
 	}
 	
 	private String trimConnectionId(String name, String id) {
+		return trimConnectionId(name, id, 3);
+	}
+	
+	private String trimConnectionId(String name, String id, int charsCount) {
 		if (id == null
 				|| id.isEmpty()
-				|| id.length() < 3) {
+				|| id.length() < charsCount) {
 			throw new RestClientException("Invalid parameter " + name);
 		}
-		return id.substring(0, id.length() - 3);
+		return id.substring(0, id.length() - charsCount);
 	}
 	
 }

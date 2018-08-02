@@ -158,6 +158,11 @@ public class MatrixController {
 		return client.autoReturn(login, password, locale, orderId, description);
 	}
 	
+	@PostMapping(RestClient.RETURN)
+	public ResponseEntity<Response<Order>> manualReturn(HttpServletRequest request) {
+		return client.manualReturn(request);
+	}
+	
 	@PostMapping(RestClient.TICKET_AUTO_RETURN)
 	public ResponseEntity<Response<Order>> ticketAutoReturn(
 			@RequestParam(required = false) String login,
