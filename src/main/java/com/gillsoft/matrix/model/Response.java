@@ -1,5 +1,6 @@
 package com.gillsoft.matrix.model;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -9,8 +10,10 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.gillsoft.Connection;
 
 @JsonInclude(value = Include.NON_NULL)
-public class Response<T> {
+public class Response<T> implements Serializable {
 	
+	private static final long serialVersionUID = -7978869662657932502L;
+
 	@JsonIgnore
 	private Connection connection;
 	

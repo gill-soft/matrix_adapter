@@ -1,5 +1,6 @@
 package com.gillsoft.matrix.model;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -7,8 +8,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonInclude(value = Include.NON_NULL)
-public class Country {
+public class Country implements Serializable {
 
+	private static final long serialVersionUID = -4604416579211450039L;
+	
 	private int id;
 	private String iso;
 	private String locale;

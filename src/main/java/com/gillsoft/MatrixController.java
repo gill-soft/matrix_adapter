@@ -52,8 +52,8 @@ public class MatrixController {
 	
 	@GetMapping(RestClient.CITIES)
 	public ResponseEntity<Response<Set<City>>> getCities(String login, String password, String locale,
-			String countryId) {
-		return client.getCities(login, password, locale, countryId);
+			@RequestParam(name = "country_id", required = false) String countryId) {
+		return client.getCities(login, password, locale, countryId, true);
 	}
 	
 	@PostMapping(RestClient.TRIPS)

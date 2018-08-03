@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -14,6 +15,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -34,6 +36,8 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.gillsoft.cache.CacheHandler;
+import com.gillsoft.cache.IOCacheException;
+import com.gillsoft.cache.RedisMemoryCache;
 import com.gillsoft.concurrent.PoolType;
 import com.gillsoft.concurrent.ThreadPoolStore;
 import com.gillsoft.matrix.model.City;
@@ -50,6 +54,11 @@ import com.gillsoft.matrix.model.Trip;
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class RestClient {
+	
+	public static final String COUNTRIES_CACHE_KEY = "matrix.countries.";
+	public static final String CITIES_CACHE_KEY = "matrix.cities.";
+	public static final String ROUTE_CACHE_KEY = "matrix.route.";
+	public static final String TRIPS_CACHE_KEY = "matrix.trips.";
 	
 	public static final String PING = "/get/ping";
 	public static final String LOCALES = "/get/locales";
@@ -146,12 +155,44 @@ public class RestClient {
 				(result, container) -> container.addAll(result.getBody()));
 	}
 	
-	public ResponseEntity<Response<Set<City>>> getCities(String login, String password, String locale, String countryId) {
+	@SuppressWarnings("unchecked")
+	public ResponseEntity<Response<Set<City>>> getCities(String login, String password, String locale, String countryId, boolean useCache) {
 		MultiValueMap<String, String> params = createLoginParams(login, password, locale);
 		params.add("country_id", countryId);
-		return new RequestSender<Set<City>>().getDataResponse(CITIES, HttpMethod.GET, params,
-				new ParameterizedTypeReference<Response<Set<City>>>() {}, PoolType.LOCALITY, new CopyOnWriteArraySet<City>(),
-				(result, container) -> container.addAll(result.getBody().getData()));
+		ResponseEntity<Response<Set<City>>> responseEntity = new RequestSender<Set<City>>().getDataResponse(
+				CITIES, HttpMethod.GET, params, new ParameterizedTypeReference<Response<Set<City>>>() {},
+				PoolType.LOCALITY, new HashSet<City>(),
+				(result, container) -> container.addAll(result.getBody().getData()),
+				!useCache ? null :
+				(connection) -> {
+					boolean cacheError = true;
+					int tryCount = 0;
+					Map<String, Object> cacheParams = new HashMap<>();
+					cacheParams.put(RedisMemoryCache.OBJECT_NAME, getCitiesCacheKey(connection.getId()));
+					cacheParams.put(RedisMemoryCache.UPDATE_TASK, new CitiesUpdateTask(connection, login, password, locale));
+					do {
+						try {
+							return (Response<Set<City>>) cache.read(cacheParams);
+						} catch (IOCacheException e) {
+							try {
+								TimeUnit.MILLISECONDS.sleep(1000);
+							} catch (InterruptedException ie) {
+							}
+						}
+					} while (cacheError && tryCount++ < Config.getRequestTimeout() / 1000);
+					return null;
+				});
+		if (countryId != null
+				&& !countryId.isEmpty()
+				&& checkResponse(responseEntity)) {
+			for (Iterator<City> iterator = responseEntity.getBody().getData().iterator(); iterator.hasNext();) {
+				City city = iterator.next();
+				if (!Objects.equals(countryId, String.valueOf(city.getGeoCountryId()))) {
+					iterator.remove();
+				}
+			}
+		}
+		return responseEntity;
 	}
 	
 	public ResponseEntity<Response<List<Trip>>> getTrips(HttpServletRequest request) {
@@ -334,7 +375,7 @@ public class RestClient {
 		return response;
 	}
 	
-	private <T> boolean checkResponse(ResponseEntity<Response<T>> response) {
+	public <T> boolean checkResponse(ResponseEntity<Response<T>> response) {
 		return (response.getStatusCode() == HttpStatus.ACCEPTED
 				|| response.getStatusCode() == HttpStatus.OK)
 				&& response.getBody().getData() != null;
@@ -379,6 +420,18 @@ public class RestClient {
 			throw new RestClientException("Invalid parameter " + name);
 		}
 		return id.substring(0, id.length() - charsCount);
+	}
+	
+	public CacheHandler getCache() {
+		return cache;
+	}
+
+	public static String getCountriesCacheKey(int connectionId) {
+		return COUNTRIES_CACHE_KEY + connectionId;
+	}
+	
+	public static String getCitiesCacheKey(int connectionId) {
+		return CITIES_CACHE_KEY + connectionId;
 	}
 	
 }

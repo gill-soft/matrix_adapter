@@ -1,5 +1,6 @@
 package com.gillsoft;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -9,18 +10,20 @@ import org.springframework.web.client.RestTemplate;
 import com.gillsoft.logging.SimpleRequestResponseLoggingInterceptor;
 import com.gillsoft.util.RestTemplateUtil;
 
-public class Connection {
+public class Connection implements Serializable {
 	
+	private static final long serialVersionUID = 4983141817430304358L;
+
 	private int id;
 	
 	private boolean available;
 
 	private String url;
 	
-	private RestTemplate template;
+	transient private RestTemplate template;
 	
 	// для запросов поиска с меньшим таймаутом
-	private RestTemplate searchTemplate;
+	transient private RestTemplate searchTemplate;
 
 	public int getId() {
 		return id;

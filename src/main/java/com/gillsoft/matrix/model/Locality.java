@@ -8,6 +8,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(value = Include.NON_NULL)
 public class Locality extends City {
 
+	private static final long serialVersionUID = -4074867855135159899L;
+	
 	private Map<String, Parameters> i18n;
 
 	public Map<String, Parameters> getI18n() {

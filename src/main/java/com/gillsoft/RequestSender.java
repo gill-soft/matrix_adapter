@@ -27,41 +27,59 @@ public class RequestSender<T> {
 	
 	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
 			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<Response<T>> type, PoolType poolType,
+			T container, ContainerDataFiller<T> filler, CacheReader<T> cacheReader) {
+		return getDataResponse(method, httpMethod, requestParams, type, poolType, container, filler, Config.getConnections(), cacheReader);
+	}
+	
+	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
+			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<Response<T>> type, PoolType poolType,
 			T container, ContainerDataFiller<T> filler) {
-		return getDataResponse(method, httpMethod, requestParams, type, poolType, container, filler, Config.getConnections());
+		return getDataResponse(method, httpMethod, requestParams, type, poolType, container, filler, Config.getConnections(), null);
 	}
 	
 	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
 			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<Response<T>> type, PoolType poolType,
 			T container, ContainerDataFiller<T> filler, Connection connection) {
-		return getDataResponse(method, httpMethod, requestParams, type, poolType, container, filler, Collections.singletonList(connection));
+		return getDataResponse(method, httpMethod, requestParams, type, poolType, container, filler, Collections.singletonList(connection), null);
 	}
 	
 	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
 			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<Response<T>> type, PoolType poolType,
 			Connection connection) {
-		return getDataResponse(method, httpMethod, requestParams, type, poolType, null, null, Collections.singletonList(connection));
+		return getDataResponse(method, httpMethod, requestParams, type, poolType, null, null, Collections.singletonList(connection), null);
 	}
 	
 	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
 			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<Response<T>> type, PoolType poolType,
-			T container, ContainerDataFiller<T> filler, List<Connection> connections) {
+			T container, ContainerDataFiller<T> filler, List<Connection> connections, CacheReader<T> cacheReader) {
 		List<Callable<ResponseEntity<Response<T>>>> callables = new ArrayList<>();
 		for (Connection connection : connections) {
 			if (connection.isAvailable()) {
 				callables.add(() -> {
-					URI uri = UriComponentsBuilder.fromUriString(connection.getUrl() + method)
-							.queryParams(requestParams)
-							.build().toUri();
-					try {
-						RequestEntity<Object> request = new RequestEntity<>(httpMethod, uri);
-						ResponseEntity<Response<T>> response = connection.getTemplate().exchange(request, type);
-						response.getBody().setConnection(connection);
-						return response;
-					} catch (RestClientException e) {
-						LOGGER.error(e.getMessage());
+					ResponseEntity<Response<T>> responseEntity = null;
+					if (cacheReader != null) {
+						Response<T> response = cacheReader.read(connection);
+						if (response != null) {
+							responseEntity = new ResponseEntity<Response<T>>(response, HttpStatus.OK);
+						}
+					}
+					if (responseEntity == null) {
+						URI uri = UriComponentsBuilder.fromUriString(connection.getUrl() + method)
+								.queryParams(requestParams)
+								.build().toUri();
+						try {
+							RequestEntity<Object> request = new RequestEntity<>(httpMethod, uri);
+							responseEntity = connection.getTemplate().exchange(request, type);
+						} catch (RestClientException e) {
+							LOGGER.error(e.getMessage());
+							return null;
+						}
+					}
+					if (responseEntity == null) {
 						return null;
 					}
+					responseEntity.getBody().setConnection(connection);
+					return responseEntity;
 				});
 			}
 		}
@@ -161,6 +179,12 @@ public class RequestSender<T> {
 	public interface ContainerFiller<T> {
 		
 		public void fill(ResponseEntity<T> response, T container);
+		
+	}
+	
+	public interface CacheReader<T> {
+		
+		public Response<T> read(Connection connection);
 		
 	}
 

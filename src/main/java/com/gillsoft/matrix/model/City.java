@@ -9,6 +9,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(value = Include.NON_NULL)
 public class City extends Country {
 
+	private static final long serialVersionUID = -443963281701008310L;
+
 	@JsonProperty("geo_country_id")
 	private int geoCountryId;
 
