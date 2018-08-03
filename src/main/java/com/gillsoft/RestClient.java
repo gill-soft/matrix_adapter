@@ -265,7 +265,7 @@ public class RestClient {
 				orderId = request.getParameter(name);
 				params.add(name, trimConnectionId(name, orderId));
 			} else if (name.contains("amount")) {
-				params.add(name, trimConnectionId(name, request.getParameter(name), 4) + "]");
+				params.add(trimConnectionId(name, name, 4) + "]", request.getParameter(name));
 			} else {
 				params.add(name, request.getParameter(name));
 			}
@@ -279,51 +279,57 @@ public class RestClient {
 		return response;
 	}
 	
-	public ResponseEntity<Response<Order>> ticketAutoReturn(String login, String password, String locale, String ticketId, String description) {
-		return orderOperation(TICKET_AUTO_RETURN, login, password, locale, ticketId, null, description, null);
-	}
-	
-	public ResponseEntity<Response<Order>> ticketAutoReturnPrice(String login, String password, String locale, String ticketId, String description) {
-		return orderOperation(TICKET_AUTO_RETURN_PRICE, login, password, locale, ticketId, null, description, null);
-	}
-	
-	public ResponseEntity<Response<Order>> ticketAnnulment(String login, String password, String locale, String ticketId, String description) {
-		return orderOperation(TICKET_ANNULMENT, login, password, locale, ticketId, null, description, null);
-	}
-	
-	public ResponseEntity<Response<Order>> ticketManualReturn(String login, String password, String locale, String ticketId, String description, String amount) {
-		return orderOperation(TICKET_RETURN, login, password, locale, ticketId, null, description, amount);
-	}
-	
 	private ResponseEntity<Response<Order>> orderOperation(String method, String login, String password, String locale, String orderId) {
-		return orderOperation(method, login, password, locale, orderId, null, null);
+		return orderOperation(method, login, password, locale, orderId, null, null, null);
 	}
 	
-	private ResponseEntity<Response<Order>> orderOperation(String method, String login, String password, String locale,
-			String orderId, String withFees, String description) {
-		return orderOperation(Config.getConnection(orderId), method, login, password, locale,
-				trimConnectionId("order_id", orderId), null, withFees, description, null);
+	private ResponseEntity<Response<Order>> orderOperation(String method, String login, String password, String locale, String orderId, String withFees, String description) {
+		return orderOperation(method, login, password, locale, orderId, withFees, description, null);
 	}
 	
-	private ResponseEntity<Response<Order>> orderOperation(String method, String login, String password, String locale,
-			String ticketId, String withFees, String description, String amount) {
-		return orderOperation(Config.getConnection(ticketId), method, login, password, locale, null,
-				trimConnectionId("ticket_id", ticketId), withFees, description, null);
-	}
-	
-	private ResponseEntity<Response<Order>> orderOperation(Connection connection, String method, String login,
-			String password, String locale, String orderId, String ticketId, String withFees, String description,
-			String amount) {
+	private ResponseEntity<Response<Order>> orderOperation(String method, String login,
+			String password, String locale, String orderId, String withFees, String description, String amount) {
 		MultiValueMap<String, String> params = createLoginParams(login, password, locale);
-		params.add("order_id", orderId);
+		params.add("order_id", trimConnectionId("order_id", orderId));
 		params.add("with_fees", withFees);
 		params.add("description", description);
-		params.add("ticket_id", ticketId);
 		params.add("amount", amount);
+		Connection connection = Config.getConnection(orderId);
 		ResponseEntity<Response<Order>> response = new RequestSender<Order>().getDataResponse(method, HttpMethod.POST,
 				params, new ParameterizedTypeReference<Response<Order>>() {}, PoolType.ORDER, connection);
 		if (checkResponse(response)) {
 			updateOrder(response.getBody().getData(), connection);
+		}
+		return response;
+	}
+	
+	public ResponseEntity<Response<Ticket>> ticketAutoReturn(String login, String password, String locale, String ticketId, String description) {
+		return ticketOperation(TICKET_AUTO_RETURN, login, password, locale, ticketId, description, null);
+	}
+	
+	public ResponseEntity<Response<Ticket>> ticketAutoReturnPrice(String login, String password, String locale, String ticketId, String description) {
+		return ticketOperation(TICKET_AUTO_RETURN_PRICE, login, password, locale, ticketId, description, null);
+	}
+	
+	public ResponseEntity<Response<Ticket>> ticketAnnulment(String login, String password, String locale, String ticketId, String description) {
+		return ticketOperation(TICKET_ANNULMENT, login, password, locale, ticketId, description, null);
+	}
+	
+	public ResponseEntity<Response<Ticket>> ticketManualReturn(String login, String password, String locale, String ticketId, String description, String amount) {
+		return ticketOperation(TICKET_RETURN, login, password, locale, ticketId, description, amount);
+	}
+	
+	private ResponseEntity<Response<Ticket>> ticketOperation(String method, String login, String password,
+			String locale, String ticketId, String description, String amount) {
+		MultiValueMap<String, String> params = createLoginParams(login, password, locale);
+		params.add("ticket_id", trimConnectionId("ticket_id", ticketId));
+		params.add("description", description);
+		params.add("amount", amount);
+		Connection connection = Config.getConnection(ticketId);
+		ResponseEntity<Response<Ticket>> response = new RequestSender<Ticket>().getDataResponse(method, HttpMethod.POST,
+				params, new ParameterizedTypeReference<Response<Ticket>>() {}, PoolType.ORDER, connection);
+		if (checkResponse(response)) {
+			response.getBody().getData().setHash(addConnectionId(response.getBody().getData().getHash(), connection));
 		}
 		return response;
 	}
@@ -335,7 +341,9 @@ public class RestClient {
 	}
 	
 	private void updateOrder(Order order, Connection connection) {
-		order.setHash(addConnectionId(order.getHash(), connection));
+		if (order.getHash() != null) {
+			order.setHash(addConnectionId(order.getHash(), connection));
+		}
 		if (order.getTickets() != null) {
 			Map<String, List<Ticket>> tickets = new HashMap<>(order.getTickets().size());
 			for (Entry<String, List<Ticket>> ticketList : order.getTickets().entrySet()) {

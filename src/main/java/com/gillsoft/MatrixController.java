@@ -21,6 +21,7 @@ import com.gillsoft.matrix.model.Response;
 import com.gillsoft.matrix.model.ReturnRule;
 import com.gillsoft.matrix.model.RouteInfo;
 import com.gillsoft.matrix.model.Seat;
+import com.gillsoft.matrix.model.Ticket;
 import com.gillsoft.matrix.model.Trip;
 
 @RestController
@@ -164,7 +165,7 @@ public class MatrixController {
 	}
 	
 	@PostMapping(RestClient.TICKET_AUTO_RETURN)
-	public ResponseEntity<Response<Order>> ticketAutoReturn(
+	public ResponseEntity<Response<Ticket>> ticketAutoReturn(
 			@RequestParam(required = false) String login,
 			@RequestParam(required = false) String password,
 			@RequestParam(required = false) String locale,
@@ -174,7 +175,7 @@ public class MatrixController {
 	}
 	
 	@PostMapping(RestClient.TICKET_AUTO_RETURN_PRICE)
-	public ResponseEntity<Response<Order>> ticketAutoReturnPrice(
+	public ResponseEntity<Response<Ticket>> ticketAutoReturnPrice(
 			@RequestParam(required = false) String login,
 			@RequestParam(required = false) String password,
 			@RequestParam(required = false) String locale,
@@ -184,7 +185,7 @@ public class MatrixController {
 	}
 	
 	@PostMapping(RestClient.TICKET_ANNULMENT)
-	public ResponseEntity<Response<Order>> ticketAnnulment(
+	public ResponseEntity<Response<Ticket>> ticketAnnulment(
 			@RequestParam(required = false) String login,
 			@RequestParam(required = false) String password,
 			@RequestParam(required = false) String locale,
@@ -194,7 +195,7 @@ public class MatrixController {
 	}
 	
 	@PostMapping(RestClient.TICKET_RETURN)
-	public ResponseEntity<Response<Order>> ticketManualReturn(
+	public ResponseEntity<Response<Ticket>> ticketManualReturn(
 			@RequestParam(required = false) String login,
 			@RequestParam(required = false) String password,
 			@RequestParam(required = false) String locale,

@@ -146,6 +146,20 @@ public class Ticket {
 	
 	@JsonProperty("ticket_fee")
 	private List<Fee> ticketFee;
+	
+	private String type;
+	private String description;
+	
+	@JsonProperty("return_rule")
+	private ReturnRule returnRule;
+	
+	private BigDecimal amount;
+	
+	@JsonProperty("ticket_return_fee")
+	private List<Fee> ticketReturnFee;
+	
+	@JsonProperty("ticket_return")
+	private Ticket ticketReturn;
 
 	public String getNumber() {
 		return number;
@@ -513,6 +527,54 @@ public class Ticket {
 
 	public void setTicketFee(List<Fee> ticketFee) {
 		this.ticketFee = ticketFee;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public ReturnRule getReturnRule() {
+		return returnRule;
+	}
+
+	public void setReturnRule(ReturnRule returnRule) {
+		this.returnRule = returnRule;
+	}
+
+	public BigDecimal getAmount() {
+		return amount;
+	}
+
+	public void setAmount(BigDecimal amount) {
+		this.amount = amount;
+	}
+
+	public List<Fee> getTicketReturnFee() {
+		return ticketReturnFee;
+	}
+
+	public void setTicketReturnFee(List<Fee> ticketReturnFee) {
+		this.ticketReturnFee = ticketReturnFee;
+	}
+
+	public Ticket getTicketReturn() {
+		return ticketReturn;
+	}
+
+	public void setTicketReturn(Ticket ticketReturn) {
+		this.ticketReturn = ticketReturn;
 	}
 
 }
