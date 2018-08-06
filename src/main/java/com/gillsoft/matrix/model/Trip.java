@@ -1,5 +1,6 @@
 package com.gillsoft.matrix.model;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -11,10 +12,12 @@ import com.fasterxml.jackson.annotation.JsonFormat.Shape;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonInclude(value = Include.NON_NULL)
-public class Trip {
+public class Trip implements Serializable {
+	
+	private static final long serialVersionUID = -3015444050776850171L;
 	
 	private int tripId;
-	private int routeId;
+	private long routeId;
 	private String routeCombinedId;
 	private String routeCode;
 	private String carrier;
@@ -68,11 +71,11 @@ public class Trip {
 		this.tripId = tripId;
 	}
 
-	public int getRouteId() {
+	public long getRouteId() {
 		return routeId;
 	}
 
-	public void setRouteId(int routeId) {
+	public void setRouteId(long routeId) {
 		this.routeId = routeId;
 	}
 

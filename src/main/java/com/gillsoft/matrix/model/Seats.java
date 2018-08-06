@@ -1,5 +1,6 @@
 package com.gillsoft.matrix.model;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -7,7 +8,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonInclude(value = Include.NON_NULL)
-public class Seats {
+public class Seats implements Serializable {
+	
+	private static final long serialVersionUID = -783011474515065722L;
 	
 	private Map<String, String> list;
 	private int count;

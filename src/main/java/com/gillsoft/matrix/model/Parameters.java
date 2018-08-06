@@ -1,11 +1,15 @@
 package com.gillsoft.matrix.model;
 
+import java.io.Serializable;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonInclude(value = Include.NON_NULL)
-public class Parameters {
+public class Parameters implements Serializable {
 
+	private static final long serialVersionUID = -6838450891436102310L;
+	
 	private String name;
 	private String address;
 	private String description;

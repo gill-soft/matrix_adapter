@@ -39,8 +39,9 @@ public class RequestSender<T> {
 	
 	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
 			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<Response<T>> type, PoolType poolType,
-			T container, ContainerDataFiller<T> filler, Connection connection) {
-		return getDataResponse(method, httpMethod, requestParams, type, poolType, container, filler, Collections.singletonList(connection), null);
+			T container, ContainerDataFiller<T> filler, Connection connection, CacheDataReader<T> cacheReader) {
+		return getDataResponse(method, httpMethod, requestParams, type, poolType, container, filler,
+				connection != null ? Collections.singletonList(connection) : Config.getConnections(), cacheReader);
 	}
 	
 	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
@@ -114,14 +115,9 @@ public class RequestSender<T> {
 	
 	public ResponseEntity<T> getResponse(String method, HttpMethod httpMethod,
 			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<T> type, PoolType poolType,
-			T container, ContainerFiller<T> filler, CacheReader<T> cacheReader) {
-		return getResponse(method, httpMethod, requestParams, type, poolType, container, filler, Config.getConnections(), cacheReader);
-	}
-	
-	public ResponseEntity<T> getResponse(String method, HttpMethod httpMethod,
-			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<T> type, PoolType poolType,
-			T container, ContainerFiller<T> filler, Connection connection) {
-		return getResponse(method, httpMethod, requestParams, type, poolType, container, filler, Collections.singletonList(connection), null);
+			T container, ContainerFiller<T> filler, Connection connection, CacheReader<T> cacheReader) {
+		return getResponse(method, httpMethod, requestParams, type, poolType, container, filler,
+				connection != null ? Collections.singletonList(connection) : Config.getConnections(), cacheReader);
 	}
 	
 	public ResponseEntity<T> getResponse(String method, HttpMethod httpMethod,

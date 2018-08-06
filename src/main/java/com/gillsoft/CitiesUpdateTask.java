@@ -23,7 +23,7 @@ public class CitiesUpdateTask extends CountriesUpdateTask {
 	@Override
 	protected Object getCacheObject(RestClient client) {
 		try {
-			ResponseEntity<Response<Set<City>>> response = client.getCities(login, password, locale, null, false);
+			ResponseEntity<Response<Set<City>>> response = client.getCities(login, password, locale, null, false, connection);
 			if (client.checkResponse(response)) {
 				return response.getBody();
 			}

@@ -57,8 +57,21 @@ public class MatrixController {
 	}
 	
 	@PostMapping(RestClient.TRIPS)
-	public ResponseEntity<Response<List<Trip>>> getTrips(HttpServletRequest request) {
-		return client.getTrips(request);
+	public ResponseEntity<Response<List<Trip>>> getTrips(
+			@RequestParam(required = false) String login,
+			@RequestParam(required = false) String password,
+			@RequestParam(required = false) String locale,
+			@RequestParam(name = "route_id", required = false) String routeId,
+			@RequestParam(name = "depart_locality", required = false) String departLocality,
+			@RequestParam(name = "arrive_locality", required = false) String arriveLocality,
+			@RequestParam(name = "depart_date", required = false) String departDate,
+			@RequestParam(required = false) String period,
+			@RequestParam(name = "is_test", required = false) String isTest,
+			@RequestParam(name = "with_empty_seats", required = false) String withEmptySeats,
+			@RequestParam(required = false) String currency,
+			@RequestParam(name = "unique_trip", required = false) String uniqueTrip) {
+		return client.getTrips(login, password, locale, routeId, departLocality, arriveLocality, departDate, period,
+				isTest, withEmptySeats, currency, uniqueTrip, true);
 	}
 	
 	@PostMapping(RestClient.RULES)

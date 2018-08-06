@@ -10,6 +10,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude(value = Include.NON_NULL)
 public class Discount extends Fee {
 
+	private static final long serialVersionUID = -4812961676356483394L;
+
 	@JsonProperty("discount_kind")
 	private String discountKind;
 	

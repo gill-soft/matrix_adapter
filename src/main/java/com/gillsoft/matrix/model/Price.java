@@ -1,12 +1,16 @@
 package com.gillsoft.matrix.model;
 
+import java.io.Serializable;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonInclude(value = Include.NON_NULL)
-public class Price {
+public class Price implements Serializable {
 	
+	private static final long serialVersionUID = 7503673018700582892L;
+
 	@JsonProperty("one_way")
 	private int oneWay;
 	
