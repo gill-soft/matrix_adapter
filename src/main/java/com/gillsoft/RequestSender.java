@@ -27,12 +27,6 @@ public class RequestSender<T> {
 	
 	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
 			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<Response<T>> type, PoolType poolType,
-			T container, ContainerDataFiller<T> filler, CacheDataReader<T> cacheReader) {
-		return getDataResponse(method, httpMethod, requestParams, type, poolType, container, filler, Config.getConnections(), cacheReader);
-	}
-	
-	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
-			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<Response<T>> type, PoolType poolType,
 			T container, ContainerDataFiller<T> filler) {
 		return getDataResponse(method, httpMethod, requestParams, type, poolType, container, filler, Config.getConnections(), null);
 	}
@@ -52,6 +46,12 @@ public class RequestSender<T> {
 	
 	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
 			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<Response<T>> type, PoolType poolType,
+			Connection connection, CacheDataReader<T> cacheReader) {
+		return getDataResponse(method, httpMethod, requestParams, type, poolType, null, null, Collections.singletonList(connection), cacheReader);
+	}
+	
+	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
+			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<Response<T>> type, PoolType poolType,
 			T container, ContainerDataFiller<T> filler, List<Connection> connections, CacheDataReader<T> cacheReader) {
 		List<Callable<ResponseEntity<Response<T>>>> callables = new ArrayList<>();
 		for (Connection connection : connections) {
@@ -61,6 +61,7 @@ public class RequestSender<T> {
 					if (cacheReader != null) {
 						Response<T> response = cacheReader.read(connection);
 						if (response != null) {
+							response.setFromCache(true);
 							responseEntity = new ResponseEntity<Response<T>>(response, HttpStatus.OK);
 						}
 					}
@@ -130,10 +131,7 @@ public class RequestSender<T> {
 					if (cacheReader != null) {
 						T response = cacheReader.read(connection);
 						if (response != null) {
-							ResponseEntity<T> responseEntity = new ResponseEntity<T>(response, HttpStatus.OK);
-							if (responseEntity != null) {
-								return responseEntity;
-							}
+							return new ResponseEntity<T>(response, HttpStatus.OK);
 						}
 					}
 					URI uri = UriComponentsBuilder.fromUriString(connection.getUrl() + method)

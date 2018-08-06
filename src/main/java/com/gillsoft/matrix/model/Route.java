@@ -1,5 +1,6 @@
 package com.gillsoft.matrix.model;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -10,8 +11,10 @@ import com.fasterxml.jackson.annotation.JsonFormat.Shape;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonInclude(value = Include.NON_NULL)
-public class Route {
+public class Route implements Serializable {
 
+	private static final long serialVersionUID = -7618751937249190787L;
+	
 	private String code;
 	private String regularity;
 	

@@ -160,24 +160,10 @@ public class RestClient {
 		return new RequestSender<Set<Country>>().getResponse(COUNTRIES, HttpMethod.GET, createLoginParams(login, password, locale),
 				new ParameterizedTypeReference<Set<Country>>() {}, PoolType.LOCALITY, new CopyOnWriteArraySet<Country>(),
 				(result, container) -> container.addAll(result.getBody()), connection,
-				!useCache ? null :
+				!useCache ? null : 
 					(conn) -> {
-						boolean cacheError = true;
-						int tryCount = 0;
-						Map<String, Object> cacheParams = new HashMap<>();
-						cacheParams.put(RedisMemoryCache.OBJECT_NAME, getCountriesCacheKey(conn.getId()));
-						cacheParams.put(RedisMemoryCache.UPDATE_TASK, new CountriesUpdateTask(conn, login, password, locale));
-						do {
-							try {
-								return (Set<Country>) cache.read(cacheParams);
-							} catch (IOCacheException e) {
-								try {
-									TimeUnit.MILLISECONDS.sleep(1000);
-								} catch (InterruptedException ie) {
-								}
-							}
-						} while (cacheError && tryCount++ < Config.getRequestTimeout() / 1000);
-						return null;
+						return (Set<Country>) readCacheObject(cache, conn, getCountriesCacheKey(conn.getId()),
+								new CountriesUpdateTask(conn, login, password, locale), Config.getRequestTimeout());
 					});
 	}
 	
@@ -195,22 +181,8 @@ public class RestClient {
 				(result, container) -> container.addAll(result.getBody().getData()), connection,
 				!useCache ? null :
 					(conn) -> {
-						boolean cacheError = true;
-						int tryCount = 0;
-						Map<String, Object> cacheParams = new HashMap<>();
-						cacheParams.put(RedisMemoryCache.OBJECT_NAME, getCitiesCacheKey(conn.getId()));
-						cacheParams.put(RedisMemoryCache.UPDATE_TASK, new CitiesUpdateTask(conn, login, password, locale));
-						do {
-							try {
-								return (Response<Set<City>>) cache.read(cacheParams);
-							} catch (IOCacheException e) {
-								try {
-									TimeUnit.MILLISECONDS.sleep(1000);
-								} catch (InterruptedException ie) {
-								}
-							}
-						} while (cacheError && tryCount++ < Config.getRequestTimeout() / 1000);
-						return null;
+						return (Response<Set<City>>) readCacheObject(cache, conn, getCitiesCacheKey(conn.getId()),
+								new CitiesUpdateTask(conn, login, password, locale), Config.getRequestTimeout());
 					});
 		if (countryId != null
 				&& !countryId.isEmpty()
@@ -246,31 +218,19 @@ public class RestClient {
 		return new RequestSender<List<Trip>>().getDataResponse(TRIPS, HttpMethod.POST, params,
 				new ParameterizedTypeReference<Response<List<Trip>>>() {}, PoolType.SEARCH, new CopyOnWriteArrayList<Trip>(),
 				(result, container) -> {
-					Connection conn = result.getBody().getConnection();
-					for (Trip trip : result.getBody().getData()) {
-						trip.setIntervalId(addConnectionId(trip.getIntervalId(), conn));
-						trip.setRouteId(Long.parseLong(addConnectionId(trip.getRouteId(), conn)));
+					if (!result.getBody().isFromCache()) {
+						Connection conn = result.getBody().getConnection();
+						for (Trip trip : result.getBody().getData()) {
+							trip.setIntervalId(addConnectionId(trip.getIntervalId(), conn));
+							trip.setRouteId(Long.parseLong(addConnectionId(trip.getRouteId(), conn)));
+						}
 					}
 					container.addAll(result.getBody().getData());
 				}, connection,
 				!useCache ? null :
 					(conn) -> {
-						boolean cacheError = true;
-						int tryCount = 0;
-						Map<String, Object> cacheParams = new HashMap<>();
-						cacheParams.put(RedisMemoryCache.OBJECT_NAME, getTripsCacheKey(conn.getId(), params));
-						cacheParams.put(RedisMemoryCache.UPDATE_TASK, new TripsUpdateTask(conn, params));
-						do {
-							try {
-								return (Response<List<Trip>>) cache.read(cacheParams);
-							} catch (IOCacheException e) {
-								try {
-									TimeUnit.MILLISECONDS.sleep(1000);
-								} catch (InterruptedException ie) {
-								}
-							}
-						} while (cacheError && tryCount++ < Config.getSearchRequestTimeout() / 1000);
-						return null;
+						return (Response<List<Trip>>) readCacheObject(cache, conn, getTripsCacheKey(conn.getId(), params),
+								new TripsUpdateTask(conn, params), Config.getSearchRequestTimeout());
 					});
 	}
 	
@@ -282,12 +242,18 @@ public class RestClient {
 				Config.getConnection(intervalId));
 	}
 	
-	public ResponseEntity<Response<RouteInfo>> getRoute(String login, String password, String locale, String routeId) {
+	@SuppressWarnings("unchecked")
+	public ResponseEntity<Response<RouteInfo>> getRoute(String login, String password, String locale, String routeId, boolean useCache) {
 		MultiValueMap<String, String> params = createLoginParams(login, password, locale);
 		params.add("route_id", trimConnectionId("route_id", routeId));
 		return new RequestSender<RouteInfo>().getDataResponse(ROUTE, HttpMethod.POST, params,
 				new ParameterizedTypeReference<Response<RouteInfo>>() {}, PoolType.SEARCH,
-				Config.getConnection(routeId));
+				Config.getConnection(routeId),
+				!useCache ? null :
+					(conn) -> {
+						return (Response<RouteInfo>) readCacheObject(cache, conn, getRouteCacheKey(conn.getId(), routeId),
+								new RouteUpdateTask(conn, login, password, locale, routeId), Config.getSearchRequestTimeout());
+					});
 	}
 	
 	public ResponseEntity<Response<List<List<Seat>>>> getSeatsMap(String login, String password, String locale, String intervalId) {
@@ -502,8 +468,30 @@ public class RestClient {
 		Collections.sort(values);
 		values.add(0, String.valueOf(connectionId));
 		values.add(0, TRIPS_CACHE_KEY);
-		System.out.println(String.join(".", values));
 		return String.join(".", values);
+	}
+	
+	public static String getRouteCacheKey(int connectionId, String routeId) {
+		return String.join(".", ROUTE_CACHE_KEY, String.valueOf(connectionId), routeId);
+	}
+	
+	public static Object readCacheObject(CacheHandler cache, Connection connection, String cacheKey, Runnable updateTask, int requestTimeout) {
+		boolean cacheError = true;
+		int tryCount = 0;
+		Map<String, Object> cacheParams = new HashMap<>();
+		cacheParams.put(RedisMemoryCache.OBJECT_NAME, cacheKey);
+		cacheParams.put(RedisMemoryCache.UPDATE_TASK, updateTask);
+		do {
+			try {
+				return cache.read(cacheParams);
+			} catch (IOCacheException e) {
+				try {
+					TimeUnit.MILLISECONDS.sleep(1000);
+				} catch (InterruptedException ie) {
+				}
+			}
+		} while (cacheError && tryCount++ < requestTimeout / 1000);
+		return null;
 	}
 	
 }

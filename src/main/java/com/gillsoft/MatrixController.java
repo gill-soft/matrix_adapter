@@ -89,7 +89,7 @@ public class MatrixController {
 			@RequestParam(required = false) String password,
 			@RequestParam(required = false) String locale,
 			@RequestParam(name = "route_id", required = false) String routeId) {
-		return client.getRoute(login, password, locale, routeId);
+		return client.getRoute(login, password, locale, routeId, true);
 	}
 	
 	@PostMapping(RestClient.SEATS_MAP)

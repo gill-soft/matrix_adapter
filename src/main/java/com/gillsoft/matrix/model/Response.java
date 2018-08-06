@@ -12,10 +12,14 @@ import com.gillsoft.Connection;
 @JsonInclude(value = Include.NON_NULL)
 public class Response<T> implements Serializable {
 	
-	private static final long serialVersionUID = -7978869662657932502L;
+
+	private static final long serialVersionUID = -5472021283160252622L;
 
 	@JsonIgnore
 	private Connection connection;
+	
+	@JsonIgnore
+	private boolean fromCache;
 	
 	private boolean status;
 	private String error;
@@ -29,6 +33,14 @@ public class Response<T> implements Serializable {
 
 	public void setConnection(Connection connection) {
 		this.connection = connection;
+	}
+
+	public boolean isFromCache() {
+		return fromCache;
+	}
+
+	public void setFromCache(boolean fromCache) {
+		this.fromCache = fromCache;
 	}
 
 	public boolean isStatus() {

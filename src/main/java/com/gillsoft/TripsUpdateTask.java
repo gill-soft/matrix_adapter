@@ -28,16 +28,16 @@ public class TripsUpdateTask extends AbstractUpdateTask {
 		RestClient client = ContextProvider.getBean(RestClient.class);
 		ResponseEntity<Response<List<Trip>>> response = client.getTrips(params, false, connection);
 		long timeToLive = 0;
-		long updateDalay = 0;
+		long updateDelay = 0;
 		if (response.getStatusCode() == HttpStatus.ACCEPTED
 				|| response.getStatusCode() == HttpStatus.OK) {
 			timeToLive = getTimeToLive(response.getBody().getData());
-			updateDalay = Config.getCacheTripUpdateDelay();
+			updateDelay = Config.getCacheTripUpdateDelay();
 		} else {
 			timeToLive = Config.getCacheErrorTimeToLive();
-			updateDalay = Config.getCacheErrorUpdateDelay();
+			updateDelay = Config.getCacheErrorUpdateDelay();
 		}
-		writeObject(client.getCache(), RestClient.getTripsCacheKey(connection.getId(), params), response.getBody(), timeToLive, updateDalay);
+		writeObject(client.getCache(), RestClient.getTripsCacheKey(connection.getId(), params), response.getBody(), timeToLive, updateDelay);
 	}
 	
 	// время жизни до момента самого позднего отправления
@@ -51,7 +51,7 @@ public class TripsUpdateTask extends AbstractUpdateTask {
 				max = trip.getDepartDate().getTime();
 			}
 		}
-		if (max == 0) {
+		if (max <= 0) {
 			return Config.getCacheErrorTimeToLive();
 		}
 		return max - System.currentTimeMillis();
