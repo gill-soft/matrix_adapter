@@ -47,7 +47,7 @@ public class MatrixController {
 	
 	@GetMapping(RestClient.COUNTRIES)
 	public ResponseEntity<Set<Country>> getCountries(String login, String password, String locale) {
-		return client.getCountries(login, password, locale);
+		return client.getCountries(login, password, locale, true);
 	}
 	
 	@GetMapping(RestClient.CITIES)

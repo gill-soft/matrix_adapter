@@ -27,7 +27,7 @@ public class RequestSender<T> {
 	
 	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
 			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<Response<T>> type, PoolType poolType,
-			T container, ContainerDataFiller<T> filler, CacheReader<T> cacheReader) {
+			T container, ContainerDataFiller<T> filler, CacheDataReader<T> cacheReader) {
 		return getDataResponse(method, httpMethod, requestParams, type, poolType, container, filler, Config.getConnections(), cacheReader);
 	}
 	
@@ -51,7 +51,7 @@ public class RequestSender<T> {
 	
 	public ResponseEntity<Response<T>> getDataResponse(String method, HttpMethod httpMethod,
 			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<Response<T>> type, PoolType poolType,
-			T container, ContainerDataFiller<T> filler, List<Connection> connections, CacheReader<T> cacheReader) {
+			T container, ContainerDataFiller<T> filler, List<Connection> connections, CacheDataReader<T> cacheReader) {
 		List<Callable<ResponseEntity<Response<T>>>> callables = new ArrayList<>();
 		for (Connection connection : connections) {
 			if (connection.isAvailable()) {
@@ -114,23 +114,32 @@ public class RequestSender<T> {
 	
 	public ResponseEntity<T> getResponse(String method, HttpMethod httpMethod,
 			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<T> type, PoolType poolType,
-			T container, ContainerFiller<T> filler) {
-		return getResponse(method, httpMethod, requestParams, type, poolType, container, filler, Config.getConnections());
+			T container, ContainerFiller<T> filler, CacheReader<T> cacheReader) {
+		return getResponse(method, httpMethod, requestParams, type, poolType, container, filler, Config.getConnections(), cacheReader);
 	}
 	
 	public ResponseEntity<T> getResponse(String method, HttpMethod httpMethod,
 			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<T> type, PoolType poolType,
 			T container, ContainerFiller<T> filler, Connection connection) {
-		return getResponse(method, httpMethod, requestParams, type, poolType, container, filler, Collections.singletonList(connection));
+		return getResponse(method, httpMethod, requestParams, type, poolType, container, filler, Collections.singletonList(connection), null);
 	}
 	
 	public ResponseEntity<T> getResponse(String method, HttpMethod httpMethod,
 			MultiValueMap<String, String> requestParams, ParameterizedTypeReference<T> type, PoolType poolType,
-			T container, ContainerFiller<T> filler, List<Connection> connections) {
+			T container, ContainerFiller<T> filler, List<Connection> connections, CacheReader<T> cacheReader) {
 		List<Callable<ResponseEntity<T>>> callables = new ArrayList<>();
 		for (Connection connection : connections) {
 			if (connection.isAvailable()) {
 				callables.add(() -> {
+					if (cacheReader != null) {
+						T response = cacheReader.read(connection);
+						if (response != null) {
+							ResponseEntity<T> responseEntity = new ResponseEntity<T>(response, HttpStatus.OK);
+							if (responseEntity != null) {
+								return responseEntity;
+							}
+						}
+					}
 					URI uri = UriComponentsBuilder.fromUriString(connection.getUrl() + method)
 							.queryParams(requestParams)
 							.build().toUri();
@@ -182,10 +191,16 @@ public class RequestSender<T> {
 		
 	}
 	
-	public interface CacheReader<T> {
+	public interface CacheDataReader<T> {
 		
 		public Response<T> read(Connection connection);
 		
 	}
-
+	
+	public interface CacheReader<T> {
+		
+		public T read(Connection connection);
+		
+	}
+	
 }

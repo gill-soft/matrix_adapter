@@ -56,7 +56,7 @@ public class CountriesUpdateTask implements Runnable, Serializable {
 	
 	protected Object getCacheObject(RestClient client) {
 		try {
-			ResponseEntity<Set<Country>> response = client.getCountries(login, password, locale);
+			ResponseEntity<Set<Country>> response = client.getCountries(login, password, locale, false);
 			if (response.getStatusCode() == HttpStatus.ACCEPTED
 					|| response.getStatusCode() == HttpStatus.OK) {
 				return response.getBody();

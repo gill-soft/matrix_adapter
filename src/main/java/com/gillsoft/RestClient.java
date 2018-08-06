@@ -149,10 +149,30 @@ public class RestClient {
 				(result, container) -> container.putAll(result.getBody().getData()));
 	}
 	
-	public ResponseEntity<Set<Country>> getCountries(String login, String password, String locale) {
+	@SuppressWarnings("unchecked")
+	public ResponseEntity<Set<Country>> getCountries(String login, String password, String locale, boolean useCache) {
 		return new RequestSender<Set<Country>>().getResponse(COUNTRIES, HttpMethod.GET, createLoginParams(login, password, locale),
 				new ParameterizedTypeReference<Set<Country>>() {}, PoolType.LOCALITY, new CopyOnWriteArraySet<Country>(),
-				(result, container) -> container.addAll(result.getBody()));
+				(result, container) -> container.addAll(result.getBody()),
+				!useCache ? null :
+					(connection) -> {
+						boolean cacheError = true;
+						int tryCount = 0;
+						Map<String, Object> cacheParams = new HashMap<>();
+						cacheParams.put(RedisMemoryCache.OBJECT_NAME, getCountriesCacheKey(connection.getId()));
+						cacheParams.put(RedisMemoryCache.UPDATE_TASK, new CountriesUpdateTask(connection, login, password, locale));
+						do {
+							try {
+								return (Set<Country>) cache.read(cacheParams);
+							} catch (IOCacheException e) {
+								try {
+									TimeUnit.MILLISECONDS.sleep(1000);
+								} catch (InterruptedException ie) {
+								}
+							}
+						} while (cacheError && tryCount++ < Config.getRequestTimeout() / 1000);
+						return null;
+					});
 	}
 	
 	@SuppressWarnings("unchecked")
