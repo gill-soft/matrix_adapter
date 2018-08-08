@@ -1,4 +1,4 @@
-# matrix_adapter
+## Tomcat settings
 
 Its important to add to tomcat context allowCasualMultipartParsing property
 
