@@ -1,3 +1,14 @@
+## About
+The project duplicate all methods of SPLOT API. Its collect all results by each API-method from all configed SPLOT-resources and return consolidated response.
+
+The project have cache.
+
+The next methods used cached result:
+- /api/v1/get/countries
+- /api/v1/get/cities
+- /api/v1/get/trips
+- /api/v1/get/route-info
+
 ## Tomcat settings
 
 Its important to add to tomcat context allowCasualMultipartParsing property
