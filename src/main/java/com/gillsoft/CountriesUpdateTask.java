@@ -1,69 +1,43 @@
 package com.gillsoft;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 
-import com.gillsoft.cache.IOCacheException;
-import com.gillsoft.cache.RedisMemoryCache;
+import com.gillsoft.cache.AbstractUpdateTask;
 import com.gillsoft.matrix.model.Country;
 import com.gillsoft.util.ContextProvider;
 
-public class CountriesUpdateTask implements Runnable, Serializable {
-	
+public class CountriesUpdateTask extends AbstractUpdateTask {
+
 	private static final long serialVersionUID = 8873082805767541195L;
 
 	protected Connection connection;
 
-	protected String login;
-	protected String password;
-	protected String locale;
+	protected MultiValueMap<String, String> params;
 
-	public CountriesUpdateTask(Connection connection, String login, String password, String locale) {
+	public CountriesUpdateTask(Connection connection, MultiValueMap<String, String> params) {
 		this.connection = connection;
-		this.login = login;
-		this.password = password;
-		this.locale = locale;
+		this.params = params;
 	}
 
 	@Override
 	public void run() {
-		Map<String, Object> params = new HashMap<>();
-		params.put(RedisMemoryCache.OBJECT_NAME, getCacheKey());
-		params.put(RedisMemoryCache.IGNORE_AGE, true);
-		params.put(RedisMemoryCache.UPDATE_DELAY, Config.getCacheStationsUpdateDelay());
-		
 		RestClient client = ContextProvider.getBean(RestClient.class);
-		try {
-			Object cache = getCacheObject(client);
-			if (cache == null) {
-				cache = client.getCache().read(params);
-			}
-			params.put(RedisMemoryCache.UPDATE_TASK, this);
-			client.getCache().write(cache, params);
-		} catch (IOCacheException e) {
-			e.printStackTrace();
+		ResponseEntity<Set<Country>> response = client.getCountries(params, false, connection);
+		if (response != null
+				&& (response.getStatusCode() == HttpStatus.ACCEPTED
+					|| response.getStatusCode() == HttpStatus.OK)) {
+			writeObjectIgnoreAge(client.getCache(),
+					RestClient.getCacheKey(RestClient.COUNTRIES_CACHE_KEY, connection.getId(), params),
+					response.getBody(), Config.getCacheStationsUpdateDelay());
+		} else {
+			writeObject(client.getCache(),
+					RestClient.getCacheKey(RestClient.COUNTRIES_CACHE_KEY, connection.getId(), params),
+					null, Config.getCacheErrorTimeToLive(), Config.getCacheErrorUpdateDelay());
 		}
-	}
-	
-	protected String getCacheKey() {
-		return RestClient.getCountriesCacheKey(connection.getId());
-	}
-	
-	protected Object getCacheObject(RestClient client) {
-		try {
-			ResponseEntity<Set<Country>> response = client.getCountries(login, password, locale, false, connection);
-			if (response.getStatusCode() == HttpStatus.ACCEPTED
-					|| response.getStatusCode() == HttpStatus.OK) {
-				return response.getBody();
-			}
-		} catch (Exception e) {
-		}
-		return null;
 	}
 
 }

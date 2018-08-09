@@ -155,15 +155,19 @@ public class RestClient {
 		return getCountries(login, password, locale, useCache, null);
 	}
 	
-	@SuppressWarnings("unchecked")
 	public ResponseEntity<Set<Country>> getCountries(String login, String password, String locale, boolean useCache, Connection connection) {
-		return new RequestSender<Set<Country>>().getResponse(COUNTRIES, HttpMethod.GET, createLoginParams(login, password, locale),
+		return getCountries(createLoginParams(login, password, locale), useCache, connection);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public ResponseEntity<Set<Country>> getCountries(MultiValueMap<String, String> params, boolean useCache, Connection connection) {
+		return new RequestSender<Set<Country>>().getResponse(COUNTRIES, HttpMethod.GET, params,
 				new ParameterizedTypeReference<Set<Country>>() {}, PoolType.LOCALITY, new CopyOnWriteArraySet<Country>(),
 				(result, container) -> container.addAll(result.getBody()), connection,
 				!useCache ? null : 
 					(conn) -> {
-						return (Set<Country>) readCacheObject(cache, conn, getCountriesCacheKey(conn.getId()),
-								new CountriesUpdateTask(conn, login, password, locale), Config.getRequestTimeout());
+						return (Set<Country>) readCacheObject(cache, conn, getCacheKey(COUNTRIES_CACHE_KEY, conn.getId(), params),
+								new CountriesUpdateTask(conn, params), Config.getRequestTimeout());
 					});
 	}
 	
@@ -171,19 +175,9 @@ public class RestClient {
 		return getCities(login, password, locale, countryId, useCache, null);
 	}
 	
-	@SuppressWarnings("unchecked")
 	public ResponseEntity<Response<Set<City>>> getCities(String login, String password, String locale, String countryId, boolean useCache, Connection connection) {
 		MultiValueMap<String, String> params = createLoginParams(login, password, locale);
-		params.add("country_id", countryId);
-		ResponseEntity<Response<Set<City>>> responseEntity = new RequestSender<Set<City>>().getDataResponse(
-				CITIES, HttpMethod.GET, params, new ParameterizedTypeReference<Response<Set<City>>>() {},
-				PoolType.LOCALITY, new HashSet<City>(),
-				(result, container) -> container.addAll(result.getBody().getData()), connection,
-				!useCache ? null :
-					(conn) -> {
-						return (Response<Set<City>>) readCacheObject(cache, conn, getCitiesCacheKey(conn.getId()),
-								new CitiesUpdateTask(conn, login, password, locale), Config.getRequestTimeout());
-					});
+		ResponseEntity<Response<Set<City>>> responseEntity = getCities(params, useCache, connection);
 		if (countryId != null
 				&& !countryId.isEmpty()
 				&& checkResponse(responseEntity)) {
@@ -195,6 +189,19 @@ public class RestClient {
 			}
 		}
 		return responseEntity;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public ResponseEntity<Response<Set<City>>> getCities(MultiValueMap<String, String> params, boolean useCache, Connection connection) {
+		return new RequestSender<Set<City>>().getDataResponse(
+				CITIES, HttpMethod.GET, params, new ParameterizedTypeReference<Response<Set<City>>>() {},
+				PoolType.LOCALITY, new HashSet<City>(),
+				(result, container) -> container.addAll(result.getBody().getData()), connection,
+				!useCache ? null :
+					(conn) -> {
+						return (Response<Set<City>>) readCacheObject(cache, conn, getCacheKey(CITIES_CACHE_KEY, conn.getId(), params),
+								new CitiesUpdateTask(conn, params), Config.getRequestTimeout());
+					});
 	}
 	
 	public ResponseEntity<Response<List<Trip>>> getTrips(String login, String password, String locale, String routeId,
@@ -229,7 +236,7 @@ public class RestClient {
 				}, connection,
 				!useCache ? null :
 					(conn) -> {
-						return (Response<List<Trip>>) readCacheObject(cache, conn, getTripsCacheKey(conn.getId(), params),
+						return (Response<List<Trip>>) readCacheObject(cache, conn, getCacheKey(TRIPS_CACHE_KEY, conn.getId(), params),
 								new TripsUpdateTask(conn, params), Config.getSearchRequestTimeout());
 					});
 	}
@@ -242,17 +249,21 @@ public class RestClient {
 				Config.getConnection(intervalId));
 	}
 	
-	@SuppressWarnings("unchecked")
 	public ResponseEntity<Response<RouteInfo>> getRoute(String login, String password, String locale, String routeId, boolean useCache) {
 		MultiValueMap<String, String> params = createLoginParams(login, password, locale);
 		params.add("route_id", trimConnectionId("route_id", routeId));
+		return getRoute(params, useCache, Config.getConnection(routeId));
+	}
+	
+	@SuppressWarnings("unchecked")
+	public ResponseEntity<Response<RouteInfo>> getRoute(MultiValueMap<String, String> params, boolean useCache, Connection connection) {
 		return new RequestSender<RouteInfo>().getDataResponse(ROUTE, HttpMethod.POST, params,
 				new ParameterizedTypeReference<Response<RouteInfo>>() {}, PoolType.SEARCH,
-				Config.getConnection(routeId),
+				connection,
 				!useCache ? null :
 					(conn) -> {
-						return (Response<RouteInfo>) readCacheObject(cache, conn, getRouteCacheKey(conn.getId(), routeId),
-								new RouteUpdateTask(conn, login, password, locale, routeId), Config.getSearchRequestTimeout());
+						return (Response<RouteInfo>) readCacheObject(cache, conn, getCacheKey(ROUTE_CACHE_KEY, conn.getId(), params),
+								new RouteUpdateTask(conn, params), Config.getSearchRequestTimeout());
 					});
 	}
 	
@@ -451,32 +462,19 @@ public class RestClient {
 	public CacheHandler getCache() {
 		return cache;
 	}
-
-	public static String getCountriesCacheKey(int connectionId) {
-		return COUNTRIES_CACHE_KEY + connectionId;
-	}
 	
-	public static String getCitiesCacheKey(int connectionId) {
-		return CITIES_CACHE_KEY + connectionId;
-	}
-	
-	public static String getTripsCacheKey(int connectionId, MultiValueMap<String, String> params) {
+	public static String getCacheKey(String key, int connectionId, MultiValueMap<String, String> params) {
 		List<String> values = new ArrayList<>();
 		for (List<String> list : params.values()) {
 			values.addAll(list.stream().filter(param -> param != null).collect(Collectors.toList()));
 		}
 		Collections.sort(values);
 		values.add(0, String.valueOf(connectionId));
-		values.add(0, TRIPS_CACHE_KEY);
+		values.add(0, key);
 		return String.join(".", values);
 	}
 	
-	public static String getRouteCacheKey(int connectionId, String routeId) {
-		return String.join(".", ROUTE_CACHE_KEY, String.valueOf(connectionId), routeId);
-	}
-	
 	public static Object readCacheObject(CacheHandler cache, Connection connection, String cacheKey, Runnable updateTask, int requestTimeout) {
-		boolean cacheError = true;
 		int tryCount = 0;
 		Map<String, Object> cacheParams = new HashMap<>();
 		cacheParams.put(RedisMemoryCache.OBJECT_NAME, cacheKey);
@@ -490,7 +488,7 @@ public class RestClient {
 				} catch (InterruptedException ie) {
 				}
 			}
-		} while (cacheError && tryCount++ < requestTimeout / 1000);
+		} while (tryCount++ < requestTimeout / 1000);
 		return null;
 	}
 	

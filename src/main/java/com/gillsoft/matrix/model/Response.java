@@ -21,6 +21,7 @@ public class Response<T> implements Serializable {
 	@JsonIgnore
 	private boolean fromCache;
 	
+	private int statusCode;
 	private boolean status;
 	private String error;
 	private String message;
@@ -41,6 +42,14 @@ public class Response<T> implements Serializable {
 
 	public void setFromCache(boolean fromCache) {
 		this.fromCache = fromCache;
+	}
+
+	public int getStatusCode() {
+		return statusCode;
+	}
+
+	public void setStatusCode(int statusCode) {
+		this.statusCode = statusCode;
 	}
 
 	public boolean isStatus() {

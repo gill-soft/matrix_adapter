@@ -62,7 +62,7 @@ public class RequestSender<T> {
 						Response<T> response = cacheReader.read(connection);
 						if (response != null) {
 							response.setFromCache(true);
-							responseEntity = new ResponseEntity<Response<T>>(response, HttpStatus.OK);
+							responseEntity = new ResponseEntity<Response<T>>(response, HttpStatus.valueOf(response.getStatusCode()));
 						}
 					}
 					if (responseEntity == null) {
@@ -98,6 +98,7 @@ public class RequestSender<T> {
 						response = new Response<>();
 						response.setStatus(true);
 						response.setData(container);
+						response.setStatusCode(responseEntity.getStatusCodeValue());
 						result = new ResponseEntity<Response<T>>(response, responseEntity.getStatusCode());
 					}
 				}
@@ -106,6 +107,9 @@ public class RequestSender<T> {
 		if (result == null) {
 			for (ResponseEntity<Response<T>> responseEntity : results) {
 				if (responseEntity != null) {
+					if (responseEntity.getBody() != null) {
+						responseEntity.getBody().setStatusCode(responseEntity.getStatusCodeValue());
+					}
 					result = new ResponseEntity<Response<T>>(responseEntity.getBody(), responseEntity.getStatusCode());
 					break;
 				}

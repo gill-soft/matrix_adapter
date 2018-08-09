@@ -2,6 +2,7 @@ package com.gillsoft;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 
 import com.gillsoft.cache.AbstractUpdateTask;
 import com.gillsoft.matrix.model.Response;
@@ -14,23 +15,17 @@ public class RouteUpdateTask extends AbstractUpdateTask {
 	
 	private Connection connection;
 	
-	private String login;
-	private String password;
-	private String locale;
-	private String routeId;
+	protected MultiValueMap<String, String> params;
 	
-	public RouteUpdateTask(Connection connection, String login, String password, String locale, String routeId) {
+	public RouteUpdateTask(Connection connection, MultiValueMap<String, String> params) {
 		this.connection = connection;
-		this.login = login;
-		this.password = password;
-		this.locale = locale;
-		this.routeId = routeId;
+		this.params = params;
 	}
 
 	@Override
 	public void run() {
 		RestClient client = ContextProvider.getBean(RestClient.class);
-		ResponseEntity<Response<RouteInfo>> response = client.getRoute(login, password, locale, routeId, false);
+		ResponseEntity<Response<RouteInfo>> response = client.getRoute(params, false, connection);
 		long timeToLive = 0;
 		long updateDelay = 0;
 		if (response.getStatusCode() == HttpStatus.ACCEPTED
@@ -41,7 +36,7 @@ public class RouteUpdateTask extends AbstractUpdateTask {
 			timeToLive = Config.getCacheErrorTimeToLive();
 			updateDelay = Config.getCacheErrorUpdateDelay();
 		}
-		writeObject(client.getCache(), RestClient.getRouteCacheKey(connection.getId(), routeId), response.getBody(), timeToLive, updateDelay);
+		writeObject(client.getCache(), RestClient.getCacheKey(RestClient.ROUTE_CACHE_KEY, connection.getId(), params), response.getBody(), timeToLive, updateDelay);
 	}
 	
 	// время жизни до конца существования маршрута

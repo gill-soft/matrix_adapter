@@ -37,7 +37,7 @@ public class TripsUpdateTask extends AbstractUpdateTask {
 			timeToLive = Config.getCacheErrorTimeToLive();
 			updateDelay = Config.getCacheErrorUpdateDelay();
 		}
-		writeObject(client.getCache(), RestClient.getTripsCacheKey(connection.getId(), params), response.getBody(), timeToLive, updateDelay);
+		writeObject(client.getCache(), RestClient.getCacheKey(RestClient.TRIPS_CACHE_KEY, connection.getId(), params), response.getBody(), timeToLive, updateDelay);
 	}
 	
 	// время жизни до момента самого позднего отправления
