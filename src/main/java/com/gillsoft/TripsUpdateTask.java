@@ -1,5 +1,6 @@
 package com.gillsoft;
 
+import java.text.ParseException;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,7 @@ import com.gillsoft.cache.AbstractUpdateTask;
 import com.gillsoft.matrix.model.Response;
 import com.gillsoft.matrix.model.Trip;
 import com.gillsoft.util.ContextProvider;
+import com.gillsoft.util.StringUtil;
 
 public class TripsUpdateTask extends AbstractUpdateTask {
 
@@ -47,11 +49,16 @@ public class TripsUpdateTask extends AbstractUpdateTask {
 		}
 		long max = 0;
 		for (Trip trip : trips) {
-			if (trip.getDepartDate().getTime() > max) {
-				max = trip.getDepartDate().getTime();
+			try {
+				long date = StringUtil.fullDateFormat.parse(StringUtil.dateFormat.format(trip.getDepartDate()) + " " + trip.getDepartTime()).getTime();
+				if (date > max) {
+					max = date;
+				}
+			} catch (ParseException e) {
 			}
 		}
-		if (max <= 0) {
+		if (max == 0
+				|| max < System.currentTimeMillis()) {
 			return Config.getCacheErrorTimeToLive();
 		}
 		return max - System.currentTimeMillis();
