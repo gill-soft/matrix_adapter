@@ -166,7 +166,7 @@ public class RestClient {
 				(result, container) -> container.addAll(result.getBody()), connection,
 				!useCache ? null : 
 					(conn) -> {
-						return (Set<Country>) readCacheObject(cache, conn, getCacheKey(COUNTRIES_CACHE_KEY, conn.getId(), params),
+						return (Set<Country>) readCacheObject(cache, getCacheKey(COUNTRIES_CACHE_KEY, conn.getId(), params),
 								new CountriesUpdateTask(conn, params), Config.getRequestTimeout());
 					});
 	}
@@ -199,7 +199,7 @@ public class RestClient {
 				(result, container) -> container.addAll(result.getBody().getData()), connection,
 				!useCache ? null :
 					(conn) -> {
-						return (Response<Set<City>>) readCacheObject(cache, conn, getCacheKey(CITIES_CACHE_KEY, conn.getId(), params),
+						return (Response<Set<City>>) readCacheObject(cache, getCacheKey(CITIES_CACHE_KEY, conn.getId(), params),
 								new CitiesUpdateTask(conn, params), Config.getRequestTimeout());
 					});
 	}
@@ -236,7 +236,7 @@ public class RestClient {
 				}, connection,
 				!useCache ? null :
 					(conn) -> {
-						return (Response<List<Trip>>) readCacheObject(cache, conn, getCacheKey(TRIPS_CACHE_KEY, conn.getId(), params),
+						return (Response<List<Trip>>) readCacheObject(cache, getCacheKey(TRIPS_CACHE_KEY, conn.getId(), params),
 								new TripsUpdateTask(conn, params), Config.getSearchRequestTimeout());
 					});
 	}
@@ -262,7 +262,7 @@ public class RestClient {
 				connection,
 				!useCache ? null :
 					(conn) -> {
-						return (Response<RouteInfo>) readCacheObject(cache, conn, getCacheKey(ROUTE_CACHE_KEY, conn.getId(), params),
+						return (Response<RouteInfo>) readCacheObject(cache, getCacheKey(ROUTE_CACHE_KEY, conn.getId(), params),
 								new RouteUpdateTask(conn, params), Config.getSearchRequestTimeout());
 					});
 	}
@@ -474,7 +474,7 @@ public class RestClient {
 		return String.join(".", values);
 	}
 	
-	public static Object readCacheObject(CacheHandler cache, Connection connection, String cacheKey, Runnable updateTask, int requestTimeout) {
+	public static Object readCacheObject(CacheHandler cache, String cacheKey, Runnable updateTask, int requestTimeout) {
 		int tryCount = 0;
 		Map<String, Object> cacheParams = new HashMap<>();
 		cacheParams.put(RedisMemoryCache.OBJECT_NAME, cacheKey);

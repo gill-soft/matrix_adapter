@@ -26,7 +26,7 @@ public class CountriesUpdateTask extends AbstractUpdateTask {
 	@Override
 	public void run() {
 		RestClient client = ContextProvider.getBean(RestClient.class);
-		ResponseEntity<Set<Country>> response = client.getCountries(params, false, connection);
+		ResponseEntity<Set<Country>> response = client.getCountries(params, false, Config.getConnection(connection.getId()));
 		if (response != null
 				&& (response.getStatusCode() == HttpStatus.ACCEPTED
 					|| response.getStatusCode() == HttpStatus.OK)) {

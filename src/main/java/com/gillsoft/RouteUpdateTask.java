@@ -25,7 +25,7 @@ public class RouteUpdateTask extends AbstractUpdateTask {
 	@Override
 	public void run() {
 		RestClient client = ContextProvider.getBean(RestClient.class);
-		ResponseEntity<Response<RouteInfo>> response = client.getRoute(params, false, connection);
+		ResponseEntity<Response<RouteInfo>> response = client.getRoute(params, false, Config.getConnection(connection.getId()));
 		long timeToLive = 0;
 		long updateDelay = 0;
 		if (response.getStatusCode() == HttpStatus.ACCEPTED

@@ -21,7 +21,7 @@ public class CitiesUpdateTask extends CountriesUpdateTask {
 	@Override
 	public void run() {
 		RestClient client = ContextProvider.getBean(RestClient.class);
-		ResponseEntity<Response<Set<City>>> response = client.getCities(params, false, connection);
+		ResponseEntity<Response<Set<City>>> response = client.getCities(params, false, Config.getConnection(connection.getId()));
 		if (response.getStatusCode() == HttpStatus.ACCEPTED
 				|| response.getStatusCode() == HttpStatus.OK) {
 			writeObjectIgnoreAge(client.getCache(),

@@ -28,7 +28,7 @@ public class TripsUpdateTask extends AbstractUpdateTask {
 	@Override
 	public void run() {
 		RestClient client = ContextProvider.getBean(RestClient.class);
-		ResponseEntity<Response<List<Trip>>> response = client.getTrips(params, false, connection);
+		ResponseEntity<Response<List<Trip>>> response = client.getTrips(params, false, Config.getConnection(connection.getId()));
 		long timeToLive = 0;
 		long updateDelay = 0;
 		if (response.getStatusCode() == HttpStatus.ACCEPTED
