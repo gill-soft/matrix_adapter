@@ -31,8 +31,9 @@ public class TripsUpdateTask extends AbstractUpdateTask {
 		ResponseEntity<Response<List<Trip>>> response = client.getTrips(params, false, Config.getConnection(connection.getId()));
 		long timeToLive = 0;
 		long updateDelay = 0;
-		if (response.getStatusCode() == HttpStatus.ACCEPTED
-				|| response.getStatusCode() == HttpStatus.OK) {
+		if (response != null
+				&& (response.getStatusCode() == HttpStatus.ACCEPTED
+					|| response.getStatusCode() == HttpStatus.OK)) {
 			timeToLive = getTimeToLive(response.getBody().getData());
 			updateDelay = Config.getCacheTripUpdateDelay();
 		} else {

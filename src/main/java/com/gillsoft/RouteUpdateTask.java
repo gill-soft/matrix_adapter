@@ -28,8 +28,9 @@ public class RouteUpdateTask extends AbstractUpdateTask {
 		ResponseEntity<Response<RouteInfo>> response = client.getRoute(params, false, Config.getConnection(connection.getId()));
 		long timeToLive = 0;
 		long updateDelay = 0;
-		if (response.getStatusCode() == HttpStatus.ACCEPTED
-				|| response.getStatusCode() == HttpStatus.OK) {
+		if (response != null 
+				&& (response.getStatusCode() == HttpStatus.ACCEPTED
+					|| response.getStatusCode() == HttpStatus.OK)) {
 			timeToLive = getTimeToLive(response.getBody().getData());
 			updateDelay = Config.getCacheTripUpdateDelay();
 		} else {

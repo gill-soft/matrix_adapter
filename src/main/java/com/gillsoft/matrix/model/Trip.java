@@ -1,6 +1,7 @@
 package com.gillsoft.matrix.model;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -16,8 +17,8 @@ public class Trip implements Serializable {
 	
 	private static final long serialVersionUID = -3015444050776850171L;
 	
-	private int tripId;
-	private long routeId;
+	private String tripId;
+	private String routeId;
 	private String routeCombinedId;
 	private String routeCode;
 	private String carrier;
@@ -33,21 +34,21 @@ public class Trip implements Serializable {
 	private String arriveTime;
 	private String departTime;
 	private String departCity;
-	private int departCityId;
+	private String departCityId;
 	private String arriveCity;
-	private int arriveCityId;
+	private String arriveCityId;
 	private String carrierCode;
 	private String busNumber;
 	private String departStation;
-	private int departStationId;
+	private String departStationId;
 	private String arriveStation;
-	private int arriveStationId;
+	private String arriveStationId;
 	private Seats freeSeats;
 	private int distance;
 	private String timeInWay;
 	private boolean international;
 	private Map<String, Boolean> docFields;
-	private int tariff;
+	private BigDecimal tariff;
 	private Price price;
 	private List<Discount> discounts;
 	private String currency;
@@ -63,19 +64,19 @@ public class Trip implements Serializable {
 	
 	private List<String> tags;
 
-	public int getTripId() {
+	public String getTripId() {
 		return tripId;
 	}
 
-	public void setTripId(int tripId) {
+	public void setTripId(String tripId) {
 		this.tripId = tripId;
 	}
 
-	public long getRouteId() {
+	public String getRouteId() {
 		return routeId;
 	}
 
-	public void setRouteId(long routeId) {
+	public void setRouteId(String routeId) {
 		this.routeId = routeId;
 	}
 
@@ -159,11 +160,11 @@ public class Trip implements Serializable {
 		this.departCity = departCity;
 	}
 
-	public int getDepartCityId() {
+	public String getDepartCityId() {
 		return departCityId;
 	}
 
-	public void setDepartCityId(int departCityId) {
+	public void setDepartCityId(String departCityId) {
 		this.departCityId = departCityId;
 	}
 
@@ -175,11 +176,11 @@ public class Trip implements Serializable {
 		this.arriveCity = arriveCity;
 	}
 
-	public int getArriveCityId() {
+	public String getArriveCityId() {
 		return arriveCityId;
 	}
 
-	public void setArriveCityId(int arriveCityId) {
+	public void setArriveCityId(String arriveCityId) {
 		this.arriveCityId = arriveCityId;
 	}
 
@@ -207,11 +208,11 @@ public class Trip implements Serializable {
 		this.departStation = departStation;
 	}
 
-	public int getDepartStationId() {
+	public String getDepartStationId() {
 		return departStationId;
 	}
 
-	public void setDepartStationId(int departStationId) {
+	public void setDepartStationId(String departStationId) {
 		this.departStationId = departStationId;
 	}
 
@@ -223,11 +224,11 @@ public class Trip implements Serializable {
 		this.arriveStation = arriveStation;
 	}
 
-	public int getArriveStationId() {
+	public String getArriveStationId() {
 		return arriveStationId;
 	}
 
-	public void setArriveStationId(int arriveStationId) {
+	public void setArriveStationId(String arriveStationId) {
 		this.arriveStationId = arriveStationId;
 	}
 
@@ -271,11 +272,11 @@ public class Trip implements Serializable {
 		this.docFields = docFields;
 	}
 
-	public int getTariff() {
+	public BigDecimal getTariff() {
 		return tariff;
 	}
 
-	public void setTariff(int tariff) {
+	public void setTariff(BigDecimal tariff) {
 		this.tariff = tariff;
 	}
 

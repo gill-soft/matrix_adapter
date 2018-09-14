@@ -12,7 +12,6 @@ import com.gillsoft.Connection;
 @JsonInclude(value = Include.NON_NULL)
 public class Response<T> implements Serializable {
 	
-
 	private static final long serialVersionUID = -5472021283160252622L;
 
 	@JsonIgnore

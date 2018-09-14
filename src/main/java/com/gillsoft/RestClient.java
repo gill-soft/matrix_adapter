@@ -50,6 +50,7 @@ import com.gillsoft.matrix.model.Response;
 import com.gillsoft.matrix.model.ReturnRule;
 import com.gillsoft.matrix.model.RouteInfo;
 import com.gillsoft.matrix.model.Seat;
+import com.gillsoft.matrix.model.Station;
 import com.gillsoft.matrix.model.Ticket;
 import com.gillsoft.matrix.model.Trip;
 
@@ -59,6 +60,7 @@ public class RestClient {
 	
 	public static final String COUNTRIES_CACHE_KEY = "matrix.countries.";
 	public static final String CITIES_CACHE_KEY = "matrix.cities.";
+	public static final String STATIONS_CACHE_KEY = "matrix.stations.";
 	public static final String ROUTE_CACHE_KEY = "matrix.route.";
 	public static final String TRIPS_CACHE_KEY = "matrix.trips";
 	
@@ -67,6 +69,7 @@ public class RestClient {
 	public static final String CURRENCIES = "/get/currency-list";
 	public static final String COUNTRIES = "/get/countries";
 	public static final String CITIES = "/get/cities";
+	public static final String STATIONS = "/geo/station";
 	public static final String TRIPS = "/get/trips";
 	public static final String RULES = "/get/trip/return-rules";
 	public static final String ROUTE = "/get/route-info";
@@ -152,11 +155,7 @@ public class RestClient {
 	}
 	
 	public ResponseEntity<Set<Country>> getCountries(String login, String password, String locale, boolean useCache) {
-		return getCountries(login, password, locale, useCache, null);
-	}
-	
-	public ResponseEntity<Set<Country>> getCountries(String login, String password, String locale, boolean useCache, Connection connection) {
-		return getCountries(createLoginParams(login, password, locale), useCache, connection);
+		return getCountries(createLoginParams(login, password, locale), useCache, null);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -171,13 +170,28 @@ public class RestClient {
 					});
 	}
 	
-	public ResponseEntity<Response<Set<City>>> getCities(String login, String password, String locale, String countryId, boolean useCache) {
-		return getCities(login, password, locale, countryId, useCache, null);
+	public ResponseEntity<Response<Set<Station>>> getStations(String login, String password, String locale, boolean useCache) {
+		MultiValueMap<String, String> params = createLoginParams(login, password, locale);
+		params.add("limit", "1000000");
+		return getStations(params, useCache, null);
 	}
 	
-	public ResponseEntity<Response<Set<City>>> getCities(String login, String password, String locale, String countryId, boolean useCache, Connection connection) {
+	@SuppressWarnings("unchecked")
+	public ResponseEntity<Response<Set<Station>>> getStations(MultiValueMap<String, String> params, boolean useCache, Connection connection) {
+		return new RequestSender<Set<Station>>().getDataResponse(
+				STATIONS, HttpMethod.GET, params, new ParameterizedTypeReference<Response<Set<Station>>>() {},
+				PoolType.LOCALITY, new CopyOnWriteArraySet<Station>(),
+				(result, container) -> container.addAll(result.getBody().getData()), connection,
+				!useCache ? null : 
+					(conn) -> {
+						return (Response<Set<Station>>) readCacheObject(cache, getCacheKey(STATIONS_CACHE_KEY, conn.getId(), params),
+								new StationUpdateTask(conn, params), Config.getRequestTimeout());
+					});
+	}
+	
+	public ResponseEntity<Response<Set<City>>> getCities(String login, String password, String locale, String countryId, boolean useCache) {
 		MultiValueMap<String, String> params = createLoginParams(login, password, locale);
-		ResponseEntity<Response<Set<City>>> responseEntity = getCities(params, useCache, connection);
+		ResponseEntity<Response<Set<City>>> responseEntity = getCities(params, useCache, null);
 		if (countryId != null
 				&& !countryId.isEmpty()
 				&& checkResponse(responseEntity)) {
@@ -195,7 +209,7 @@ public class RestClient {
 	public ResponseEntity<Response<Set<City>>> getCities(MultiValueMap<String, String> params, boolean useCache, Connection connection) {
 		return new RequestSender<Set<City>>().getDataResponse(
 				CITIES, HttpMethod.GET, params, new ParameterizedTypeReference<Response<Set<City>>>() {},
-				PoolType.LOCALITY, new HashSet<City>(),
+				PoolType.LOCALITY, new CopyOnWriteArraySet<City>(),
 				(result, container) -> container.addAll(result.getBody().getData()), connection,
 				!useCache ? null :
 					(conn) -> {
@@ -204,19 +218,13 @@ public class RestClient {
 					});
 	}
 	
-	public ResponseEntity<Response<List<Trip>>> getTrips(String login, String password, String locale, String routeId,
-			String departLocality, String arriveLocality, String departDate, String period, String isTest,
-			String withEmptySeats, String currency, String uniqueTrip, boolean useCache) {
-		MultiValueMap<String, String> params = createLoginParams(login, password, locale);
-		params.add("route_id", routeId);
-		params.add("depart_locality", departLocality);
-		params.add("arrive_locality", arriveLocality);
-		params.add("depart_date", departDate);
-		params.add("period", period);
-		params.add("is_test", isTest);
-		params.add("with_empty_seats", withEmptySeats);
-		params.add("currency", currency);
-		params.add("unique_trip", uniqueTrip);
+	public ResponseEntity<Response<List<Trip>>> getTrips(HttpServletRequest request, boolean useCache) {
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		Enumeration<String> requestParams = request.getParameterNames();
+		while (requestParams.hasMoreElements()) {
+			String name = requestParams.nextElement();
+			params.add(name, request.getParameter(name));
+		}
 		return getTrips(params, useCache, null);
 	}
 	
@@ -229,7 +237,7 @@ public class RestClient {
 						Connection conn = result.getBody().getConnection();
 						for (Trip trip : result.getBody().getData()) {
 							trip.setIntervalId(addConnectionId(trip.getIntervalId(), conn));
-							trip.setRouteId(Long.parseLong(addConnectionId(trip.getRouteId(), conn)));
+							trip.setRouteId(addConnectionId(trip.getRouteId(), conn));
 						}
 					}
 					container.addAll(result.getBody().getData());
