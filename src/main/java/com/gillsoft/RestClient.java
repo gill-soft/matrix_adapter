@@ -171,17 +171,43 @@ public class RestClient {
 	}
 	
 	public ResponseEntity<Response<Set<Station>>> getStations(String login, String password, String locale, boolean useCache) {
+		Map<Integer, Set<Station>> all = new ConcurrentHashMap<>();
+		
 		MultiValueMap<String, String> params = createLoginParams(login, password, locale);
 		params.add("limit", "1000000");
-		return getStations(params, useCache, null);
+		ResponseEntity<Response<Set<Station>>> resp = getStations(params, useCache, null, all);
+		
+		Set<Station> stations = new HashSet<>();
+		stations.addAll(all.get(0));
+		for (Iterator<Station> iterator = stations.iterator(); iterator.hasNext();) {
+			Station station = iterator.next();
+			boolean contains = true;
+			for (Connection con : Config.getConnections()) {
+				if (!all.get(con.getId()).contains(station)) {
+					contains = false;
+					break;
+				}
+			}
+			if (!contains) {
+				iterator.remove();
+			}
+		}
+		resp.getBody().setData(stations);
+		return resp;
 	}
 	
 	@SuppressWarnings("unchecked")
-	public ResponseEntity<Response<Set<Station>>> getStations(MultiValueMap<String, String> params, boolean useCache, Connection connection) {
+	public ResponseEntity<Response<Set<Station>>> getStations(MultiValueMap<String, String> params, boolean useCache, Connection connection, Map<Integer, Set<Station>> all) {
 		return new RequestSender<Set<Station>>().getDataResponse(
 				STATIONS, HttpMethod.GET, params, new ParameterizedTypeReference<Response<Set<Station>>>() {},
 				PoolType.LOCALITY, new CopyOnWriteArraySet<Station>(),
-				(result, container) -> container.addAll(result.getBody().getData()), connection,
+				(result, container) -> {
+					container.addAll(result.getBody().getData());
+					if (all != null) {
+						all.put(result.getBody().getConnection().getId(), result.getBody().getData());
+					}
+				},
+				connection,
 				!useCache ? null : 
 					(conn) -> {
 						return (Response<Set<Station>>) readCacheObject(cache, getCacheKey(STATIONS_CACHE_KEY, conn.getId(), params),

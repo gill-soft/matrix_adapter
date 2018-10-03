@@ -21,7 +21,7 @@ public class StationUpdateTask extends CountriesUpdateTask {
 	@Override
 	public void run() {
 		RestClient client = ContextProvider.getBean(RestClient.class);
-		ResponseEntity<Response<Set<Station>>> response = client.getStations(params, false, Config.getConnection(connection.getId()));
+		ResponseEntity<Response<Set<Station>>> response = client.getStations(params, false, Config.getConnection(connection.getId()), null);
 		if (response != null
 				&& (response.getStatusCode() == HttpStatus.ACCEPTED
 					|| response.getStatusCode() == HttpStatus.OK)) {

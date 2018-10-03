@@ -72,13 +72,12 @@ public class Station extends Country {
 				&& cityId == station.getCityId()
 				&& countryId == station.getCountryId()
 				&& Objects.equals(cityName, station.getCityName())
-				&& Objects.equals(countryName, station.getCountryName())
-				&& Objects.equals(address, station.getAddress());
+				&& Objects.equals(countryName, station.getCountryName());
 	}
 	
 	@Override
 	public int hashCode() {
-		return super.hashCode() * 31 + Objects.hash(address, cityId, cityName, cityId, countryName);
+		return super.hashCode() * 31 + Objects.hash(cityId, cityName, cityId, countryName);
 	}
 
 }
