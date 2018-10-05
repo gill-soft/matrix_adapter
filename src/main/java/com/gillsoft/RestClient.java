@@ -175,6 +175,7 @@ public class RestClient {
 		
 		MultiValueMap<String, String> params = createLoginParams(login, password, locale);
 		params.add("limit", "1000000");
+		params.add("filter[parent_id]", "");
 		ResponseEntity<Response<Set<Station>>> resp = getStations(params, useCache, null, all);
 		
 		Set<Station> stations = new HashSet<>();
