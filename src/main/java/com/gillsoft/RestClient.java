@@ -450,7 +450,10 @@ public class RestClient {
 		return params;
 	}
 	
-	private String addConnectionId(Object id, Connection connection) {
+	private String addConnectionId(String id, Connection connection) {
+		if (Config.getConnections().size() == 1) {
+			return id;
+		}
 		return id + String.format("%03d", connection.getId());
 	}
 	
@@ -459,6 +462,9 @@ public class RestClient {
 	}
 	
 	private String trimConnectionId(String name, String id, int charsCount) {
+		if (Config.getConnections().size() == 1) {
+			return id;
+		}
 		if (id == null
 				|| id.isEmpty()
 				|| id.length() < charsCount) {
