@@ -47,7 +47,9 @@ public class Config {
 	}
 	
 	public static Connection getConnection(String id) {
-		
+		if (connections.size() == 1) {
+			return connections.get(0);
+		}
 		// берем последние 3 цифры с конца
 		id = id.substring(id.length() - 3, id.length());
 		try {
