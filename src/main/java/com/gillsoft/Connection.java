@@ -5,8 +5,11 @@ import java.util.Collections;
 import java.util.Properties;
 
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.gillsoft.logging.SimpleRequestResponseLoggingInterceptor;
 import com.gillsoft.util.RestTemplateUtil;
 
@@ -79,6 +82,12 @@ public class Connection implements Serializable {
 		template.setInterceptors(Collections.singletonList(
 				new SimpleRequestResponseLoggingInterceptor()));
 		template.setErrorHandler(new RestTemplateResponseErrorHandler());
+		for (HttpMessageConverter<?> converter : template.getMessageConverters()) {
+			if (converter instanceof AbstractJackson2HttpMessageConverter) {
+				((AbstractJackson2HttpMessageConverter) converter).getObjectMapper()
+						.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
+			}
+		}
 		return template;
 	}
 	
