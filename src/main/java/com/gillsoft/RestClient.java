@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -479,8 +478,8 @@ public class RestClient {
 	
 	public static String getCacheKey(String key, int connectionId, MultiValueMap<String, String> params) {
 		List<String> values = new ArrayList<>();
-		for (List<String> list : params.values()) {
-			values.addAll(list.stream().filter(param -> param != null).collect(Collectors.toList()));
+		for (String paramKey : params.keySet()) {
+			values.add(paramKey + "=" + params.getFirst(paramKey));
 		}
 		Collections.sort(values);
 		values.add(0, String.valueOf(connectionId));
