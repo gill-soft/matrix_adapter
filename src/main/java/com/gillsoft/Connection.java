@@ -11,7 +11,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.gillsoft.logging.SimpleRequestResponseLoggingInterceptor;
-import com.gillsoft.util.RestTemplateUtil;
 
 public class Connection implements Serializable {
 	

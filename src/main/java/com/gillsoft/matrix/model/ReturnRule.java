@@ -1,11 +1,8 @@
 package com.gillsoft.matrix.model;
 
 import java.math.BigDecimal;
-import java.util.Date;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonFormat.Shape;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonInclude(value = Include.NON_NULL)
@@ -17,12 +14,8 @@ public class ReturnRule {
 	private int calculationType;
 	private BigDecimal value;
 	private BigDecimal feeValue;
-	
-	@JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
 	private String activeFrom;
-	
-	@JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-	private Date activeTo;
+	private String activeTo;
 
 	public String getTitle() {
 		return title;
@@ -80,11 +73,11 @@ public class ReturnRule {
 		this.activeFrom = activeFrom;
 	}
 
-	public Date getActiveTo() {
+	public String getActiveTo() {
 		return activeTo;
 	}
 
-	public void setActiveTo(Date activeTo) {
+	public void setActiveTo(String activeTo) {
 		this.activeTo = activeTo;
 	}
 
